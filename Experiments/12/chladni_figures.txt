@@ -1,0 +1,75 @@
+CHLADNI FIGURES
+===============
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images showing the nodal-line patterns of
+a vibrating square plate.  These are the patterns Ernst Chladni observed
+in 1787 by bowing a sand-covered metal plate: sand collects along the
+nodal lines (zero-displacement curves) of the vibration modes.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Normalise pixel coordinates to [0, 1]:
+         x_norm = x / size,   y_norm = y / size
+
+  2. Choose two integer mode numbers:
+         m  in  {1, 2, ..., 8}
+         n  in  {1, 2, ..., 8}
+
+  3. Choose the superposition sign:  s  in  {+1, -1}.
+
+  4. Compute the plate function at every pixel:
+
+         f(x,y) = cos(m*pi*x) * cos(n*pi*y)
+                  + s * cos(n*pi*x) * cos(m*pi*y)
+
+  5. Highlight the nodal lines (where f is near zero) using a Gaussian
+     kernel:
+
+         pixel_value = 255 * exp( -(f / w)^2 )
+
+     with width parameter  w = 0.15.
+
+     Pixels near f = 0 are bright; pixels far from zero are dark.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+The vibration of a thin elastic plate is governed by the biharmonic
+equation:
+    D * nabla^4 w  +  rho * h * (d^2 w/dt^2) = 0
+
+For a square plate with free edges, the normal modes are well
+approximated by products of cosines:
+
+    w_mn(x,y,t) = [ cos(m*pi*x/L) * cos(n*pi*y/L)
+                    +/- cos(n*pi*x/L) * cos(m*pi*y/L) ] * cos(omega_mn * t)
+
+The nodal lines are the curves where  w_mn = 0.  Their geometry depends
+on the mode numbers (m, n) and the sign:
+
+  - With "+":  the pattern has the full symmetry of the square, D4
+    (4 rotations + 4 mirrors).
+  - With "-":  the diagonal mirror symmetries are broken, leaving D2
+    (2 rotations + 2 mirrors), but new nodal lines along the diagonals
+    appear.
+  - When m = n:
+    - With "+":  f = 2 * cos(m*pi*x) * cos(m*pi*y), giving a grid
+      of squares (D4 symmetry).
+    - With "-":  f = 0 everywhere (trivial mode).
+
+The number of nodal lines roughly increases with m + n.  The pattern
+complexity grows quadratically with the mode numbers.
+
+Chladni figures were historically important as the first systematic
+study of 2-D wave phenomena and led to the development of plate
+vibration theory by Sophie Germain (1816).
+
+Parameter space:  (m, n, sign) — a finite discrete space of
+8 * 8 * 2 = 128 possible modes (with some symmetry-related
+degeneracies, since swapping m and n with sign=+1 gives the same
+pattern).

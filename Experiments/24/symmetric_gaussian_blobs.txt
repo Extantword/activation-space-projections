@@ -1,0 +1,65 @@
+SYMMETRIC GAUSSIAN BLOBS
+========================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of soft, cloud-like patterns formed
+by summing random 2-D Gaussian blobs.  Each blob is placed on the right
+half of the image and a mirror copy is added on the left, producing
+bilaterally symmetric "ink-blot" images with smooth, continuous intensity
+gradients — a continuous-tone counterpart to the binary random walk of
+Experiment 7.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Let  cx = size / 2  be the axis of symmetry.
+
+  2. Choose  num_blobs  in  {4, ..., 12}.
+
+  3. For each blob:
+       - Centre:  (bx, by)  with  bx in [cx, size-3],  by in [3, size-3]
+       - Width:   sigma  in  [3, 10]  pixels
+       - Peak:    amplitude  in  [0.5, 1.0]
+
+  4. For every pixel (x, y), accumulate:
+
+       canvas(x,y) += amplitude * exp( -((x-bx)^2 + (y-by)^2) / (2*sigma^2) )
+                     + amplitude * exp( -((x-(2*cx-bx))^2 + (y-by)^2) / (2*sigma^2) )
+
+     The second term is the mirrored blob.
+
+  5. Normalise the canvas to [0, 255] by dividing by the global maximum.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  Z2  (bilateral symmetry about the vertical axis)
+
+Each blob is a 2-D isotropic Gaussian:
+    G(x, y; mu, sigma) = exp( -||(x,y) - mu||^2 / (2*sigma^2) )
+
+The sum of Gaussians is a Gaussian Mixture Model (GMM) with equal
+covariance matrices.  The bilateral constraint means the mixture has
+2 * num_blobs components, arranged in mirror pairs.
+
+Properties of the Gaussian kernel:
+  - It is the unique function that is both radially symmetric and
+    separable:  G(x,y) = G(x) * G(y).
+  - It is the Green's function of the heat equation:
+    G_sigma = fundamental solution of  du/dt = nabla^2 u  at time
+    t = sigma^2 / 2.
+  - The Fourier transform of a Gaussian is another Gaussian:
+    FT[G_sigma] = G_{1/sigma}  (up to normalisation).
+
+The smooth, overlapping nature of the blobs creates a low-frequency
+image with gentle gradients.  This makes the dataset a good test for
+whether an autoencoder captures global spatial structure (as opposed to
+the high-frequency edges in curve-based datasets).
+
+The effective dimensionality of the dataset is  4 * num_blobs
+(bx, by, sigma, amplitude per blob), ranging from 16 to 48 real
+parameters.  However, the normalisation step means amplitude ratios
+matter more than absolute values, reducing the effective dimension by 1.

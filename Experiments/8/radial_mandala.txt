@@ -1,0 +1,78 @@
+RADIAL MANDALA
+==============
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of mandala-like patterns.  Each image
+consists of concentric circles decorated with evenly-spaced dots and
+radial spokes, all arranged with n-fold rotational symmetry.  The fold
+number varies across images (4, 5, 6, 7, 8, 10, or 12), so the dataset
+contains a mixture of different rotational symmetry orders.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Place the centre at (cx, cy) = (size/2, size/2).
+
+  2. Randomise the structure parameters:
+       - fold  (n)    chosen from  {4, 5, 6, 7, 8, 10, 12}
+       - num_rings    in  {3, 4, 5, 6}
+
+  3. For each ring  j = 0, 1, ..., num_rings-1:
+
+       a. Compute the ring radius:
+              r_j = 5 + (size/2 - 7) * (j+1) / num_rings
+
+       b. Draw a concentric circle of radius r_j (white outline on black).
+
+       c. Choose a random dot radius:  dot_r  in  [1, 3]
+
+       d. For each of the n fold positions  k = 0, 1, ..., n-1:
+
+            i.  Compute the angular position with a per-ring stagger:
+                    angle_k = 2*pi*k/n  +  j * pi/(n*2)
+
+            ii. Compute the dot centre on the ring:
+                    (cx + r_j*cos(angle_k),  cy + r_j*sin(angle_k))
+
+           iii. Draw a filled circle (dot) of radius dot_r at that point.
+
+            iv. If j > 0, draw a radial spoke (line) connecting this dot
+                to the corresponding position on the previous ring:
+                    inner radius = 5 + (size/2 - 7) * j / num_rings
+                    inner point  at the same angle_k
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  approximately C_n  (cyclic group of order n)
+
+If the per-ring angular stagger were zero, the pattern would have exact
+C_n symmetry.  The stagger term  j * pi/(n*2)  rotates each ring's dots
+by a small offset, which generally breaks the symmetry to C_1 (no
+rotational symmetry beyond the identity).  However, for certain fold
+numbers and ring counts, the stagger can be commensurate and a subgroup
+of C_n is preserved.  Visually, the stagger is small enough that the
+approximate n-fold symmetry remains clearly perceptible.
+
+Concentric circles have infinite rotational symmetry (the group SO(2),
+or equivalently U(1)).  The dots reduce this to a discrete subgroup.
+
+Mandala geometry:  The word "mandala" (Sanskrit for "circle") refers to
+geometric patterns used in Hindu and Buddhist traditions.  Mathematically,
+mandalas are characterised by:
+  - A central point (the bindu)
+  - Concentric rings of increasing radius
+  - Discrete rotational symmetry within each ring
+  - Radial connections between rings
+
+The combination of circles (continuous rotational symmetry) and discrete
+rotational elements (dots, spokes) creates a tension between SO(2) and
+C_n that is visually compelling and mathematically rich.
+
+Parameter space:  Each image is determined by (n, num_rings, dot_r per
+ring, base stagger).  The discrete choice of n partitions the dataset
+into 7 symmetry classes.  Within each class, the continuous parameters
+(ring count, dot sizes) create variation.

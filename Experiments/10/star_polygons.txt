@@ -1,0 +1,87 @@
+STAR POLYGONS
+=============
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of star polygons — figures formed by
+connecting every k-th vertex of a regular n-gon.  Each image may contain
+one to three nested star polygons at different scales and with different
+step sizes, producing complex rotationally-symmetric figures.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Place the centre at (cx, cy) = (size/2, size/2).
+
+  2. Randomise the structure parameters:
+       - n_vertices     in  {5, 6, 7, ..., 15}
+       - num_stars       in  {1, 2, 3}
+       - base_rotation   in  [0, 2*pi)
+
+  3. For each star layer  s = 0, 1, ..., num_stars-1:
+
+       a. Compute the circumradius:
+              r_s = (size/2 - 2) * (1 - s * 0.25)
+          If r_s < 5 pixels, skip.
+
+       b. Choose the step size:
+              k  in  [2,  max(2, n_vertices//2 - 1)]
+
+       c. Apply a small rotation offset per layer:
+              rotation_s = base_rotation + s * random(0, pi/n_vertices)
+
+       d. Compute the vertices of the regular n-gon:
+              V_j = ( cx + r_s * cos(rotation_s + 2*pi*j/n) ,
+                      cy + r_s * sin(rotation_s + 2*pi*j/n) )
+          for j = 0, 1, ..., n-1.
+
+       e. For each vertex j, draw a line from V_j to V_{(j+k) mod n}.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  C_n  or  D_n  (depending on parameters)
+
+A single star polygon {n/k} is the figure obtained by connecting every
+k-th vertex of a regular n-gon.  It has the full dihedral symmetry D_n
+(n rotations + n reflections).
+
+The Schlafli symbol {n/k} denotes a star polygon with:
+  - n vertices equally spaced on a circle
+  - Each vertex connected to the vertex k positions ahead
+
+For {n/k} to form a single connected star (rather than a compound of
+several polygons), gcd(n, k) must equal 1.  When gcd(n, k) = d > 1,
+the figure decomposes into d separate {n/d, k/d} polygons rotated
+relative to each other.
+
+Examples:
+  - {5/2}:  the classic pentagram (five-pointed star)
+  - {6/2}:  hexagram = two overlapping triangles (Star of David)
+  - {7/2}:  heptagram
+  - {7/3}:  a more "pointy" heptagram
+  - {8/3}:  octagram
+
+The interior angle at each point of a {n/k} star polygon is:
+    alpha = 180 * (n - 2k) / n   degrees
+
+The total turning number (winding number around the centre) is k.
+
+When multiple star layers are nested with slight rotation offsets, the
+individual D_n symmetries of each layer are generally broken, leaving
+only the common C_n rotational symmetry.  If all layers share the same
+rotation, the full D_n is preserved.
+
+Star polygons appear throughout history in art, architecture, and
+religious symbolism (Islamic geometric art, the Star of David, the
+Seal of Solomon, Kepler's stellated polyhedra).  They are also related
+to modular arithmetic:  the sequence of vertices visited by stepping
+by k positions is the coset  {0, k, 2k, ...}  modulo n.
+
+Parameter space:  Each image is determined by (n_vertices, num_stars,
+base_rotation, k per layer, rotation offset per layer).  The discrete
+parameter n_vertices partitions the dataset into 11 symmetry classes
+(n = 5 through 15).  Within each class, the choice of k and the nesting
+create further visual diversity.

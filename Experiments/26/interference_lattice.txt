@@ -1,0 +1,73 @@
+INTERFERENCE LATTICE
+====================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of crystallographic interference
+patterns.  N plane waves propagating at equally-spaced angles are summed,
+producing a 2-D lattice pattern with N-fold rotational symmetry.  The
+images resemble the diffraction patterns of 2-D crystals and the
+wallpaper-group structures found in Islamic geometric art.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Centre the coordinate system:
+         x_c = x - size/2,   y_c = y - size/2
+
+  2. Choose the number of plane waves:  N  from  {3, 4, 5, 6}.
+
+  3. Randomise:
+       - freq        in  [0.3, 0.8]
+       - base_angle  in  [0, 2*pi)
+
+  4. For each wave  k = 0, 1, ..., N-1:
+         angle_k = base_angle + 2*pi*k / N
+         wave_k(x,y) = sin( freq * (x_c * cos(angle_k) + y_c * sin(angle_k)) )
+
+  5. Sum all waves:
+         f(x,y) = sum_k  wave_k(x,y)
+
+  6. Min-max normalise f to [0, 255].
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  C_N  or  D_N  depending on base_angle alignment
+
+Each plane wave  sin(freq * (x*cos(a) + y*sin(a)))  has translational
+symmetry along the direction perpendicular to its wave vector
+k = freq * (cos(a), sin(a)).
+
+The superposition of N equally-spaced plane waves produces a pattern
+with the following symmetries:
+
+  - N = 3:  Hexagonal lattice (triangular tiling).  Related to the
+    wallpaper group p6m.  This is the crystal structure of graphene.
+
+  - N = 4:  Square lattice.  Related to the wallpaper group p4m.
+
+  - N = 5:  Quasicrystalline pattern with 5-fold symmetry (forbidden
+    in periodic crystals by the crystallographic restriction theorem).
+    Related to Penrose tilings and Al-Mn quasicrystals.
+
+  - N = 6:  Also hexagonal, but with a different phase relationship
+    than N = 3 (every other maximum suppressed).
+
+The Fourier transform of the pattern consists of exactly N delta peaks
+arranged in a regular polygon in frequency space.  This is the
+reciprocal-lattice picture of crystallography.
+
+Crystallographic restriction theorem:  Only N = 1, 2, 3, 4, 6 are
+compatible with periodic lattice translations.  N = 5 produces an
+aperiodic (quasicrystalline) structure that has long-range rotational
+order but no translational periodicity.
+
+The intensity maxima form a lattice (or quasilattice) whose nearest-
+neighbour distance is  d = 2*pi / (freq * 2 * sin(pi/N)).
+
+Parameter space:  (N, freq, base_angle) — 4 discrete symmetry classes
+times a 2-D continuous subspace.  The base_angle rotates the entire
+lattice but does not change its structure.

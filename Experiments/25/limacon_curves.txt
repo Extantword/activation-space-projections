@@ -1,0 +1,76 @@
+LIMACON CURVES
+==============
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of limacon curves — a family of
+polar curves  r = a + b*cos(theta)  that includes the cardioid, dimpled
+limacons, limacons with inner loops, and convex limacons.  All members
+of the family have bilateral (mirror) symmetry about the polar axis.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Randomise:
+       - a         in  [0.3, 1.5]
+       - b         in  [0.5, 1.5]
+       - rotation  in  [0, 2*pi)   (rotates the mirror axis)
+
+  2. Evaluate the polar equation at 501 points:
+       For s = 0, ..., 500:
+         theta = 2*pi * s / 500
+         r     = a + b * cos(theta)
+         x     = r * cos(theta + rotation)
+         y     = r * sin(theta + rotation)
+
+  3. Scale the point set to fit within the image (3-pixel margin).
+
+  4. Draw the polyline (white on black).
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  Z2  (bilateral symmetry about the rotated polar axis)
+
+The limacon family  r = a + b*cos(theta)  exhibits four distinct
+topological regimes depending on the ratio  q = a/b:
+
+  1.  q < 1  (a < b):   Limacon with an inner loop.
+      The curve crosses the origin when  cos(theta) = -a/b.
+
+  2.  q = 1  (a = b):   Cardioid (heart shape).
+      A single cusp at the origin.  This is also the inverse of a
+      parabola and the caustic of a circle.
+
+  3.  1 < q < 2:        Dimpled limacon.
+      No loop, but a concavity (dimple) on one side.
+
+  4.  q >= 2:           Convex limacon.
+      A smooth, egg-like oval with no dimple.
+
+The Cartesian equation of the limacon is:
+    (x^2 + y^2 - a*x)^2 = b^2 * (x^2 + y^2)
+
+which is a degree-4 algebraic curve.
+
+The limacon is a special case of the conchoid of a circle and also
+arises as a roulette — the trace of a point on a circle rolling on
+another circle of equal radius (related to epicycloids).
+
+Curvature:  The curvature of the limacon is:
+    kappa = (a^2 + 2*b^2 + 3*a*b*cos(theta))
+            / (a^2 + b^2 + 2*a*b*cos(theta))^(3/2)
+
+At  theta = 0  (the tip):  kappa = (a + b)^{-1}  (positive, convex).
+At  theta = pi (the dimple): kappa can be negative (concave) when a < 2b.
+
+Area enclosed:
+    A = pi * (a^2 + b^2/2)    for  a >= b  (no loop)
+    A = pi * (a^2 + b^2/2) + special correction  for  a < b  (with loop)
+
+Parameter space:  (a, b, rotation) — 3 continuous dimensions.  The
+ratio a/b controls the topological type; rotation is a trivial symmetry.
+The effective shape space is 1-dimensional (the ratio a/b), making this
+a good test for learning a 1-D manifold.

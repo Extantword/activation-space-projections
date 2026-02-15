@@ -1,0 +1,68 @@
+GUILLOCHE PATTERNS
+==================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of guilloche (security-engraving)
+patterns.  Each image overlays two hypotrochoid curves drawn with
+slightly different pen distances and a phase offset.  The interplay
+between the two curves creates the fine interlocking line work seen on
+banknotes, certificates, and passport pages.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose shared parameters for both curves:
+       - R  (fixed circle radius)    in  [14, 25]
+       - r  (rolling circle radius)  in  [3, 0.6*R]
+
+  2. Choose per-curve pen distances:
+       - d1  in  [0.4*r, 1.0*r]
+       - d2  in  [0.4*r, 1.0*r]
+
+  3. Choose a phase offset between the two curves:
+       - phase_offset  in  [pi/12, pi/3]
+
+  4. For each curve, evaluate the hypotrochoid over 20 revolutions
+     (2000 sample points):
+
+       Curve 1 (phase = 0):
+         x(t) = (R-r)*cos(t) + d1*cos((R-r)*t/r)
+         y(t) = (R-r)*sin(t) - d1*sin((R-r)*t/r)
+
+       Curve 2 (phase = phase_offset):
+         Same equations with d2 and  t -> t + phase_offset.
+
+  5. Scale each curve independently to fit the image.
+
+  6. Draw both curves (grey on black) on the same canvas.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Each individual curve is a hypotrochoid (see Experiment 6).  The
+guilloche pattern is the visual superposition of two such curves.
+
+When the two curves share the same (R, r) but differ in d or phase,
+they have the same rotational symmetry order  n = round(R/r)  but
+different radial extents, creating a moire-like region between them
+where the curves interleave.
+
+The envelope (boundary) of the region between the two curves forms a
+smooth closed curve whose shape depends on d1, d2, and the phase offset.
+
+Historically, guilloche patterns were produced by geometric lathes —
+mechanical devices that simultaneously rotate and translate a cutting
+tool.  The difficulty of replicating these patterns by hand made them
+an early anti-counterfeiting measure.
+
+The mathematical description is a pair of parametric curves in the
+plane, each periodic with period  T = 2*pi*r / gcd(R-r, r)  (when
+R/r is rational).  The two curves together form a 2-component link in
+3-D (parameter, x, y) space.
+
+Parameter space:  (R, r, d1, d2, phase_offset) — 5 continuous
+dimensions.  Since only the ratios matter (due to rescaling), the
+effective dimensionality is 4.

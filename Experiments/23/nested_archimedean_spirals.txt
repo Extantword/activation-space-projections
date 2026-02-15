@@ -1,0 +1,74 @@
+NESTED ARCHIMEDEAN SPIRALS
+==========================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images containing N interleaved Archimedean
+spirals winding outward from a common centre.  The spirals are equally
+spaced in angle (offsets of 2*pi/N), giving the pattern C_N rotational
+symmetry.  The result resembles galaxy arms, water vortices, or the
+grooves of a vinyl record.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose the number of arms:  N  from  {2, 3, 4, 5, 6}.
+
+  2. Randomise:
+       - turns   in  [1.5, 4.0]   (number of full revolutions)
+       - max_r  = size/2 - 2
+
+  3. Compute the Archimedean spacing:  b = max_r / (turns * 2*pi).
+
+  4. For each arm  k = 0, 1, ..., N-1:
+
+       angular_offset = k * 2*pi / N
+
+       Sample 301 points along the spiral:
+         For s = 0, 1, ..., 300:
+           theta = turns * 2*pi * s / 300
+           r     = b * theta
+           x     = cx + r * cos(theta + angular_offset)
+           y     = cy + r * sin(theta + angular_offset)
+
+       Draw the polyline (white on black).
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  C_N  (cyclic group of order N)
+
+An Archimedean spiral has the polar equation  r = a + b*theta  (here
+a = 0, so  r = b*theta).  The distance between successive turns is
+constant:  delta_r = 2*pi*b.
+
+Properties of the Archimedean spiral:
+  - Arc length from the origin to angle theta:
+        L = (b/2) * [ theta * sqrt(1 + theta^2)
+                       + ln(theta + sqrt(1 + theta^2)) ]
+    ≈ b * theta^2 / 2  for large theta.
+
+  - Curvature at polar angle theta:
+        kappa = (2 + theta^2) / (b * (1 + theta^2)^(3/2))
+    → 1/(b*theta)  for large theta  (approaches a circle).
+
+When N spirals are placed with equal angular offsets, a rotation of
+2*pi/N maps each arm to the next.  No mirror symmetry exists (spirals
+have a handedness — clockwise or counterclockwise).
+
+The chirality (handedness) of the spiral breaks all reflection
+symmetries, making C_N (pure rotations) the exact symmetry group,
+as opposed to D_N.  This is one of the few datasets in this collection
+with chiral symmetry.
+
+Related structures:
+  - Logarithmic spiral:  r = a * exp(b*theta)  — self-similar under
+    scaling (found in nautilus shells, galaxy arms).
+  - Fermat spiral:  r = a * sqrt(theta)  — used in phyllotaxis
+    (Experiment 20).
+  - Our Archimedean spiral:  r = b*theta  — constant spacing.
+
+Parameter space:  (N, turns) — 5 discrete arm counts times a 1-D
+continuous turns parameter.

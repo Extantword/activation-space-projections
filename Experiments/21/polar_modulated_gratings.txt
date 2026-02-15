@@ -1,0 +1,63 @@
+POLAR MODULATED GRATINGS
+========================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of spiral-like interference fringes
+produced by coupling angular and radial oscillations in polar coordinates.
+The intensity at each pixel is  sin(n*theta + freq*r),  which creates a
+pattern of curved fringes radiating outward with approximate n-fold
+rotational symmetry.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Pre-compute polar coordinates from the image centre:
+         r(x,y)     = sqrt( (x - cx)^2 + (y - cy)^2 )
+         theta(x,y) = atan2( y - cy, x - cx )
+
+  2. Randomise:
+       - n_fold  from  {3, 4, 5, 6, 8, 10}
+       - freq    in  [0.2, 0.8]
+       - phase   in  [0, 2*pi)
+
+  3. Compute:
+         f(r, theta) = sin(n_fold * theta  +  freq * r  +  phase)
+
+  4. Rescale from [-1, 1] to [0, 255].
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry:  approximate C_n  (exact C_n only at r = 0)
+
+The level curves of  f(r, theta) = c  (constant) are:
+    n * theta + freq * r + phase = arcsin(c) + 2*m*pi
+
+Solving for theta:
+    theta(r) = (arcsin(c) + 2*m*pi - freq*r - phase) / n
+
+These are Archimedean spirals (theta linear in r) with  n  interleaved
+branches (one per value of  m mod n).  The spiral pitch is
+delta_r = 2*pi*n / freq  per full turn.
+
+At  freq = 0,  the pattern reduces to pure angular sectors with exact
+C_n symmetry.  As freq increases, the sectors twist into spirals.  The
+pattern therefore interpolates between pure rotational symmetry and
+spiral symmetry.
+
+The function can also be written as:
+    f = sin(n*theta) * cos(freq*r + phase)
+        + cos(n*theta) * sin(freq*r + phase)
+
+showing it as a linear combination of angular modes modulated by radial
+oscillations — a form related to the angular momentum decomposition in
+quantum mechanics.
+
+The pattern is 2*pi-periodic in theta and quasi-periodic in r (periodic
+with period 2*pi/freq, but the angular coupling shifts the phase).
+
+Parameter space:  (n_fold, freq, phase) — 6 discrete symmetry classes
+times a 2-D continuous subspace.

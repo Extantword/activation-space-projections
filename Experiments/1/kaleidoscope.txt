@@ -1,0 +1,67 @@
+KALEIDOSCOPE PATTERNS
+=====================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images that resemble the view through a
+kaleidoscope.  Each image contains random line segments that have been
+replicated with full hexagonal symmetry (six-fold rotation combined with
+six mirror axes), producing intricate radial patterns centred on the image.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Place the origin at the image centre (cx, cy) = (size/2, size/2).
+
+  2. Choose a random number of line strokes (between 3 and 7).
+
+  3. For each stroke, sample two random points in polar coordinates
+     (r1, a1) and (r2, a2), where the angles are confined to a single
+     base wedge of width pi/6 (30 degrees):
+
+         r  in  [3, size/2 - 1]
+         a  in  [0, pi/6]
+
+  4. Replicate every stroke 12 times by combining:
+       - 6 rotational copies: offset = k * pi/3,   k = 0, 1, ..., 5
+       - 2 mirror copies per rotation: the angle a is used both as +a
+         and -a relative to the rotation axis.
+
+     The Cartesian endpoints of each copy are:
+         x = cx + r * cos(mirror * a + offset)
+         y = cy + r * sin(mirror * a + offset)
+
+     where  mirror in {+1, -1}.
+
+  5. Draw each line segment (white on black) onto the image.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  D6  (dihedral group of order 12)
+
+D6 is the symmetry group of the regular hexagon.  It contains:
+  - 6 rotations:  by multiples of 60 degrees  (C6 subgroup)
+        R(k) :  theta  ->  theta + k * pi/3,   k = 0..5
+  - 6 reflections:  across axes separated by 30 degrees
+        sigma_k :  theta  ->  -theta + k * pi/3
+
+The fundamental domain (the smallest region that tiles the plane under the
+group action) is a wedge of angular width  2*pi / |D6| = pi/6  (30 degrees).
+Any motif placed in this wedge is uniquely extended to the full image by
+applying all 12 group elements.
+
+In group-theoretic notation:
+    D6 = < r, s  |  r^6 = s^2 = (sr)^2 = e >
+where  r = rotation by 60 degrees  and  s = any single reflection.
+
+The number of distinct orbit shapes under D6 depends on the position of the
+point relative to the symmetry axes.  Points on a mirror axis have a
+stabiliser of order 2 (orbit of size 6), while generic points have a trivial
+stabiliser (orbit of size 12).
+
+Because the construction uses continuous random parameters (radii and angles),
+the dataset spans a rich manifold of kaleidoscope patterns, all sharing the
+same D6 symmetry but differing in their internal geometry.

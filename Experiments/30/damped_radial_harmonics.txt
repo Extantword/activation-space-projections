@@ -1,0 +1,71 @@
+DAMPED RADIAL HARMONICS
+=======================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of radially-decaying angular mode
+patterns.  Each image shows the product of a cosine angular mode, a
+sinusoidal radial oscillation, and an exponential decay, producing
+flower-like patterns concentrated near the image centre with C_n or D_n
+rotational symmetry.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Pre-compute polar coordinates:
+         r(x,y)     = sqrt( (x - cx)^2 + (y - cy)^2 )
+         theta(x,y) = atan2( y - cy, x - cx )
+
+  2. Randomise:
+       - n_mode  in  {2, 3, ..., 10}     (angular mode number)
+       - freq    in  [0.3, 1.0]           (radial frequency)
+       - sigma   in  [0.2*size, 0.5*size] (decay length)
+       - phase   in  [0, 2*pi)
+
+  3. Compute:
+         angular = cos(n_mode * theta + phase)
+         radial  = sin(freq * r)
+         decay   = exp(-r / sigma)
+         f       = angular * radial * decay
+
+  4. Min-max normalise f to [0, 255].
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  D_n  (dihedral, n rotations + n reflections)
+
+The cosine angular mode  cos(n*theta + phase)  has:
+  - n-fold rotational symmetry:  cos(n*(theta + 2*pi/n)) = cos(n*theta)
+  - n mirror axes:  cos(n*(-theta + 2*phase/n)) = cos(n*theta + phase)
+    when the reflection axis passes through a maximum.
+
+The radial factor  sin(freq * r) * exp(-r / sigma)  is radially
+symmetric (depends only on r), so it does not break the angular
+symmetry.  The full pattern therefore has D_n symmetry.
+
+The exponential decay  exp(-r / sigma)  confines the pattern to a
+region of radius ~3*sigma around the centre.  The characteristic
+"ringing" comes from the radial sine factor, which creates concentric
+bright/dark rings modulated by the angular cosine.
+
+Comparison with Experiment 16 (drum modes):  The drum modes use a
+linear fade and do not have exponential decay.  The damped harmonics
+here produce a more concentrated, flower-petal appearance because the
+exponential kills the signal more aggressively at large r.
+
+Physical analogues:
+  - Damped vibrations of a circular plate (with energy loss)
+  - Quantum mechanical wave functions in a central potential
+    (hydrogen atom radial wave functions have the form
+    R_nl(r) ~ r^l * exp(-r/(n*a_0)) * L_{n-l-1}(2r/(n*a_0)))
+  - Antenna radiation patterns (angular lobes with radial decay)
+
+The product form  f(r, theta) = A(theta) * R(r)  is the standard
+separation-of-variables ansatz for PDEs in polar coordinates.
+
+Parameter space:  (n_mode, freq, sigma, phase) — 9 discrete angular
+modes times a 3-D continuous subspace (freq, sigma, phase).  The
+phase rotates the pattern; freq and sigma control the radial structure.

@@ -1,0 +1,73 @@
+TRUCHET TILING
+==============
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of Truchet tile mosaics.  The image
+is divided into a grid of square cells, each containing two quarter-circle
+arcs that connect midpoints of adjacent edges.  The tile orientation
+(one of two types) is randomised on the right half of the image and
+mirrored to the left, producing bilaterally-symmetric labyrinth patterns
+with smooth, continuous curves.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose a cell size:  cs  from  {8, 16}  pixels.
+     Grid dimensions:  grid = size / cs.
+
+  2. Assign tile types (0 or 1) for each cell:
+       - For cells in the left half (gx < grid/2): assign randomly.
+       - For cells in the right half: set to  1 - tiles[mirror_col, gy]
+         (mirrored and flipped to maintain arc continuity across the
+         symmetry axis).
+
+  3. For each cell at grid position (gx, gy):
+
+       Compute the pixel origin:  (x0, y0) = (gx*cs, gy*cs).
+
+       Type 0 — arcs at top-left and bottom-right corners:
+         Arc 1: quarter circle centred at (x0, y0), radius cs/2,
+                 from angle 0 to pi/2.
+         Arc 2: quarter circle centred at (x0+cs, y0+cs), radius cs/2,
+                 from angle pi to 3*pi/2.
+
+       Type 1 — arcs at top-right and bottom-left corners:
+         Arc 1: quarter circle centred at (x0+cs, y0), radius cs/2,
+                 from angle pi/2 to pi.
+         Arc 2: quarter circle centred at (x0, y0+cs), radius cs/2,
+                 from angle 3*pi/2 to 2*pi.
+
+     Each arc is drawn as a 16-point polyline for smooth rendering.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry:  bilateral (Z2) about the vertical centre axis, plus local
+            arc-continuity constraints.
+
+Truchet tiles (named after Sebastien Truchet, 1704) are among the
+simplest examples of random tiling systems.  Each tile has exactly two
+orientations, and the arcs on adjacent tiles connect seamlessly regardless
+of orientation, guaranteeing that every random assignment produces
+continuous, non-intersecting curves.
+
+The curves formed by connected arcs are closed loops of varying size.
+The statistics of these loops (number, length distribution) are related
+to percolation theory on the dual lattice.
+
+For a grid of  N x N  tiles, there are  2^(N^2)  possible configurations
+in the unconstrained case.  Our bilateral constraint reduces this to
+2^(N * ceil(N/2))  configurations.
+
+The quarter-circle arcs have curvature  kappa = 2/cs  (constant within
+each arc).  The resulting global curves are piecewise-circular with
+curvature discontinuities at cell boundaries — a C^0 but not C^1
+assembly.
+
+Parameter space:  For an 8x8 grid, each image is determined by
+8 * 4 = 32 binary tile choices (right half), giving  2^32  ~ 4 billion
+possible patterns.  For a 4x4 grid, 4 * 2 = 8 choices, giving 256
+patterns.

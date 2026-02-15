@@ -1,0 +1,73 @@
+PINWHEEL SECTORS
+================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of pinwheel patterns.  The image is
+divided into alternating bright and dark curved sectors that spiral
+outward from the centre.  A radial "twist" parameter bends the sector
+boundaries, turning straight radial lines into spirals.  The pattern has
+C_N rotational symmetry and a circular fade at the boundary.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Pre-compute polar coordinates:
+         r(x,y)     = sqrt( (x - cx)^2 + (y - cy)^2 )
+         theta(x,y) = atan2( y - cy, x - cx )
+
+  2. Randomise:
+       - num_blades  (N)  from  {3, 4, 5, 6, 8}
+       - twist       in  [0.05, 0.2]  (radians per pixel of radius)
+       - phase       in  [0, 2*pi)
+
+  3. Compute the effective angle with radial twist:
+         theta_eff = theta + twist * r + phase
+
+  4. Map to sectors using a soft step function:
+         sector_val = sin(N * theta_eff)
+         pattern    = (tanh(5 * sector_val) + 1) / 2 * 255
+
+     The tanh function creates sharp but smooth boundaries between
+     bright and dark sectors.
+
+  5. Apply a circular fade:
+         fade = clamp(1 - r / (size/2),  0,  1)
+         pattern *= fade
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  C_N  (cyclic group of order N)
+
+The sector boundaries are the curves where  sin(N * theta_eff) = 0,
+i.e.  N * (theta + twist * r + phase) = m * pi  for integer m.
+
+Solving for theta:
+    theta = m * pi / N  -  twist * r  -  phase
+
+These are Archimedean spirals (theta linear in r) with angular pitch
+delta_theta = pi/N  between adjacent boundaries.  There are 2N boundary
+spirals, dividing the plane into N bright and N dark sectors.
+
+The twist parameter controls the curvature:
+  - twist = 0:  straight radial lines (pure sectors, like a pie chart)
+  - twist > 0:  counter-clockwise spiraling sectors
+  - twist < 0:  clockwise spiraling sectors
+
+The chirality (handedness) of the twist breaks all mirror symmetries,
+leaving only the pure rotational group C_N (not D_N).
+
+The tanh(5 * sin(...)) function acts as a smooth approximation to a
+square wave, creating sectors with well-defined boundaries but without
+Gibbs-phenomenon ringing.
+
+The circular fade envelope confines the pattern to a disk, avoiding
+sharp corners at the image boundary.  This makes the pattern resemble
+physical pinwheels, turbine blades, or rotating optical illusions.
+
+Parameter space:  (N, twist, phase) — 5 discrete symmetry classes
+times a 2-D continuous subspace.  The phase parameter rotates the
+entire pattern; twist controls the spiral curvature.
