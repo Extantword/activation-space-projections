@@ -1,0 +1,43 @@
+ROTATED LINE GRIDS
+==================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of overlapping line grids.  N sets
+of equally-spaced parallel lines are drawn at angles separated by
+pi/N, covering the full image.  The overlay creates interference-like
+patterns with C_N rotational symmetry, reminiscent of engine-turned
+metal finishes or engraved backgrounds.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose  N  from  {3, 4, 5, 6}  (number of line sets).
+  2. Choose  spacing  in  [5, 12]  pixels and a base angle.
+  3. For each set s = 0..N-1:
+       angle = base_angle + pi * s / N
+       Draw parallel lines perpendicular to (cos(angle), sin(angle)),
+       spaced by spacing pixels, spanning the full diagonal.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  C_N  (or D_N if base_angle is aligned)
+
+Each individual set of parallel lines has translational symmetry
+along the line direction and reflection symmetry across the line
+direction.  The superposition of N sets at equal angular intervals
+produces C_N rotational symmetry.
+
+The bright spots (where multiple lines overlap) form a lattice
+determined by the intersections.  For N=3 lines at 60-degree intervals
+with spacing d, the intersection lattice is a triangular lattice with
+nearest-neighbour distance  d / sin(60) = 2d / sqrt(3).
+
+The pattern is related to the Moire patterns (Experiment 9) but uses
+straight parallel lines instead of curved/circular grids.
+
+Parameter space:  (N, spacing, base_angle) — 4 discrete symmetry
+classes times a 2-D continuous subspace.

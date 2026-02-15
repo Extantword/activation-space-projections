@@ -1,0 +1,39 @@
+CONCENTRIC DOT RINGS
+====================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images showing dots arranged on concentric
+rings.  Each k-th ring holds  fold * k  equally-spaced dots, so the
+density increases outward.  The full pattern has D_{fold} symmetry.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose  fold  from  {3, 4, 5, 6, 8}.
+  2. Choose  num_rings  in  {3, ..., 7}, a dot radius, and a phase offset.
+  3. For ring k = 1 .. num_rings:
+         r        = max_r * k / num_rings
+         num_dots = fold * k
+         Place num_dots equally-spaced filled circles on the ring.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  D_{fold}
+
+Each ring individually has D_{num_dots} symmetry (a regular polygon of
+dots).  The intersection of all these dihedral groups is D_{fold},
+since fold divides every num_dots = fold * k.
+
+The total number of dots is  fold * sum_{k=1}^{num_rings} k
+= fold * num_rings * (num_rings + 1) / 2,  ranging from 18 to 168.
+
+The pattern resembles the dot layouts used in halftone printing and
+in the rosette arrangements found in certain crystal diffraction
+patterns.
+
+Parameter space:  (fold, num_rings, dot_r, phase) — 5 discrete
+symmetry classes times a 3-D continuous subspace.

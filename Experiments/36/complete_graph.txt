@@ -1,0 +1,50 @@
+COMPLETE GRAPH ON REGULAR n-GON
+===============================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of complete graphs K_n.  The n
+vertices are placed on a regular polygon and every pair is connected
+by a straight line, producing a dense web of chords with D_n dihedral
+symmetry.  The resulting pattern shows intricate internal star and
+polygon sub-structures.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose  n  in  {5, ..., 18}.
+  2. Place vertices on a circle of radius  size/2 - 3  with a random
+     phase offset.
+  3. Draw all  C(n,2) = n*(n-1)/2  edges.
+  4. Brightness per edge is scaled inversely with n to prevent
+     saturation at high vertex counts.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  D_n  (n rotations + n reflections)
+
+The complete graph K_n on vertices of a regular n-gon has:
+  - n vertices
+  - n(n-1)/2 edges
+  - Each vertex has degree n-1
+
+The pattern of chord intersections inside the circle is related to
+the "mystic rose" or "string art" construction.  The number of
+interior intersection points (for n vertices in general position on
+a circle) is C(n,4) = n(n-1)(n-2)(n-3)/24, since each 4-subset of
+vertices defines a unique interior crossing of two chords.
+
+The set of distinct chord lengths in K_n on a regular n-gon is
+floor(n/2), corresponding to chords spanning 1, 2, ..., floor(n/2)
+vertices.  Chords of the same span form a regular star polygon.
+
+For prime n, the chord pattern has no non-trivial sub-symmetries,
+making the full D_n group the only symmetry.  For composite n, there
+are additional sub-patterns with higher symmetry (e.g. K_12 contains
+a K_6 sub-pattern with D_6 symmetry).
+
+Parameter space:  (n, phase) — 14 discrete vertex counts times a
+continuous rotation angle.

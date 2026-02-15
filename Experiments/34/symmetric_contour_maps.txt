@@ -1,0 +1,49 @@
+SYMMETRIC CONTOUR MAPS
+======================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of topographic-style contour lines.
+Gaussian blobs are placed with D_n symmetry, their sum forms a smooth
+2-D field, and iso-contour lines at evenly-spaced thresholds are
+highlighted, producing concentric closed curves that inherit the D_n
+symmetry of the underlying field.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose  fold = n  from  {3, 4, 5, 6}.
+  2. Place  num_base  (2-5) Gaussian blobs in the fundamental wedge,
+     then replicate by D_n (n rotations x 2 mirrors).
+  3. Sum all Gaussians into a smooth field and normalise to [0, 1].
+  4. Choose  num_levels  (5-10) contour thresholds.
+  5. For each threshold, highlight pixels where the field value is
+     near the threshold using a narrow Gaussian kernel:
+         contour(x,y) = exp( -((field(x,y) - level) / 0.02)^2 )
+  6. Sum all contour contributions, normalise to [0, 255].
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  D_n  (dihedral, n rotations + n reflections)
+
+The contour lines of a function with D_n symmetry are themselves
+D_n-symmetric curves.  At each threshold, the iso-line is either a
+single closed curve or a union of closed curves.  As the threshold
+increases toward the maximum, the curves shrink toward the local
+maxima of the field.
+
+Topological transitions (contour merging/splitting) occur at saddle
+points of the field, corresponding to the Morse theory of the
+Gaussian-mixture function.
+
+The rendering technique (narrow Gaussian at each level) is equivalent
+to computing  delta(field - level)  convolved with a smoothing kernel,
+which approximates the mathematical definition of a contour as a
+level set.
+
+Parameter space:  (n, blob positions and sizes) — similar to
+Experiment 24 but with contour-line rendering instead of raw field
+display.
