@@ -1,0 +1,76 @@
+CONCENTRIC POLYGONS
+===================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images showing nested regular polygons
+(triangles, squares, pentagons, hexagons, heptagons, or octagons) drawn
+at decreasing radii from a common centre.  Each successive ring may be
+slightly rotated relative to the previous one, creating a visual "twist"
+effect while preserving the underlying rotational symmetry.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Place the centre at (cx, cy) = (size/2, size/2).
+
+  2. Randomise the polygon parameters:
+       - sides  (s)         in  {3, 4, 5, 6, 7, 8}
+       - num_rings           in  {3, 4, 5, 6, 7}
+       - base_rotation       in  [0, 2*pi)
+       - rotation_increment  in  [-pi/(2*s),  pi/(2*s)]
+
+  3. For each ring  j = 0, 1, ..., num_rings-1:
+
+       a. Compute the circumradius:
+              r_j = (size/2 - 2) * (1 - j / num_rings)
+          If r_j < 3 pixels, skip (polygon too small to render).
+
+       b. Compute the rotation for this ring:
+              theta_j = base_rotation + j * rotation_increment
+
+       c. Compute the s vertices of the regular polygon:
+              V_k = ( cx + r_j * cos(theta_j + 2*pi*k/s) ,
+                      cy + r_j * sin(theta_j + 2*pi*k/s) )
+          for k = 0, 1, ..., s-1.
+
+       d. Close the polygon by appending V_0 and draw the polyline
+          (white on black).
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  C_s  (cyclic group of order s)
+
+A single regular s-gon has the dihedral symmetry D_s (rotations +
+reflections).  However, when successive rings are rotated by an
+irrational or non-commensurate increment, the mirror symmetries are
+generally broken, leaving only the s-fold rotational symmetry:
+
+    C_s = { R(2*pi*k/s)  |  k = 0, 1, ..., s-1 }
+
+When rotation_increment = 0, the full dihedral group D_s is preserved.
+
+The vertex positions are given by the s-th roots of unity scaled by the
+circumradius:
+
+    V_k = centre + r * exp(i*(theta + 2*pi*k/s))
+
+in complex notation.  The rotation increment between rings creates a
+discrete analogue of a helical or spiral staircase projected onto 2D.
+
+The interior angle of a regular s-gon is  (s-2)*180/s  degrees.  The
+angular span of each edge subtended at the centre is  360/s  degrees.
+
+For the special case s = 6 (hexagons), the figures tile the plane in
+the familiar honeycomb tiling.  For s = 3, 4, and 6, the regular polygons
+are the only ones that tile the Euclidean plane by themselves (the three
+regular tilings).
+
+Parameter space:  Each image is determined by (s, num_rings, base_rotation,
+rotation_increment) — a mixed discrete-continuous space.  The discrete
+choice of s partitions the dataset into distinct symmetry classes, which
+makes this dataset interesting for studying how autoencoders learn to
+separate different rotational symmetry orders.

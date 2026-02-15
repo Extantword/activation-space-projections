@@ -1,0 +1,83 @@
+MOIRE INTERFERENCE
+==================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images showing Moire interference patterns
+produced by overlapping two sets of concentric circular wave gratings.
+The two grating centres are placed symmetrically about the image centre,
+so the resulting interference fringes inherit bilateral symmetry along the
+axis connecting the two sources.  Unlike the other datasets, these images
+are continuous-tone (not binary) and computed directly in numpy rather
+than drawn with PIL.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Pre-compute a coordinate grid:
+       y_grid, x_grid = np.mgrid[0:size, 0:size]   (float64)
+
+  2. Randomise the grating parameters:
+       - offset      in  [3, size/4]       (distance from centre to each source)
+       - axis_angle  in  [0, 2*pi)         (orientation of the source axis)
+       - freq        in  [0.5, 1.5]        (spatial frequency of both gratings)
+
+  3. Compute the two grating centres, placed symmetrically:
+       cx1 = size/2 + offset * cos(axis_angle)
+       cy1 = size/2 + offset * sin(axis_angle)
+       cx2 = size/2 - offset * cos(axis_angle)
+       cy2 = size/2 - offset * sin(axis_angle)
+
+  4. Compute the radial distance from every pixel to each centre:
+       r1(x,y) = sqrt( (x - cx1)^2  +  (y - cy1)^2 )
+       r2(x,y) = sqrt( (x - cx2)^2  +  (y - cy2)^2 )
+
+  5. Evaluate two sinusoidal gratings and sum them:
+       g1 = sin(freq * r1)
+       g2 = sin(freq * r2)
+       pattern = (g1 + g2) / 2
+
+  6. Rescale from [-1, 1] to [0, 255] (uint8):
+       image = ((pattern + 1) / 2 * 255).astype(uint8)
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  Z2  (bilateral symmetry about the axis through both centres)
+
+The pattern is invariant under reflection across the line connecting
+(cx1, cy1) and (cx2, cy2), because swapping the two sources simply
+exchanges g1 and g2, which does not change their sum.
+
+Moire theory:  When two periodic patterns are superimposed, the result
+contains spatial frequencies that are sums and differences of the original
+frequencies.  For concentric circular gratings:
+
+    g1 + g2 = sin(f*r1) + sin(f*r2)
+            = 2 * cos( f*(r1-r2)/2 ) * sin( f*(r1+r2)/2 )
+
+The slowly varying envelope  cos(f*(r1-r2)/2)  is the Moire fringe
+pattern.  The locus  r1 - r2 = constant  is a family of confocal
+hyperbolas with foci at the two centres.  Therefore, the bright Moire
+fringes form hyperbolic curves.
+
+The fringe spacing depends on the source separation (2*offset) and the
+grating frequency.  Closer sources produce wider fringes; higher
+frequencies produce finer gratings but do not change the Moire spacing
+(which depends on the frequency difference, here zero — so the Moire
+pattern arises purely from the geometric difference in r1 and r2).
+
+The sum  r1 + r2  traces confocal ellipses.  The fast oscillation
+sin(f*(r1+r2)/2)  creates the fine ring structure visible in each image.
+
+Optics analogy:  This is the 2D analogue of Young's double-slit
+interference (in the near field / Fresnel regime), but with circular
+wavefronts instead of planar ones.  Each grating can be thought of as
+the wavefront pattern from a point source.
+
+Parameter space:  Each image is determined by (offset, axis_angle, freq)
+— a 3-dimensional continuous manifold.  The axis_angle acts as a pure
+rotation of the entire pattern, so modulo rotation the intrinsic space
+is 2-dimensional: (offset, freq).

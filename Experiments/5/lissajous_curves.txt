@@ -1,0 +1,82 @@
+LISSAJOUS CURVES
+================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of Lissajous curves — closed
+parametric curves defined by two sinusoidal oscillations in perpendicular
+directions with integer frequency ratios.  Different frequency pairs
+produce curves with distinct symmetry properties ranging from simple
+ellipses to complex multi-lobed figures.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose a frequency pair (a, b) uniformly at random from:
+       (1,2), (1,3), (2,3), (3,4), (3,5),
+       (4,5), (1,4), (2,5), (3,7), (5,6)
+
+  2. Choose a phase offset:
+       delta  in  [0, pi]
+
+  3. Set amplitude = size/2 - 3 and centre = (size/2, size/2).
+
+  4. Evaluate the parametric equations at 501 uniformly spaced values
+     of  t  in  [0, 2*pi]:
+
+       x(t) = cx + amplitude * sin(a*t + delta)
+       y(t) = cy + amplitude * sin(b*t)
+
+  5. Draw the resulting polyline (white on black).
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Lissajous curves (also called Bowditch curves) are the family of curves:
+
+    x = A * sin(a*t + delta)
+    y = B * sin(b*t)
+
+When a/b is rational (p/q in lowest terms), the curve closes after a
+period of  T = 2*pi * lcm(1/a, 1/b).
+
+Symmetry properties depend on the ratio a:b and the phase delta:
+
+  - When delta = 0  and  a, b are both odd:
+        The curve has two perpendicular mirror axes (D2 symmetry).
+
+  - When delta = pi/2  and  a:b = 1:2:
+        The curve traces a parabola-like figure with one mirror axis.
+
+  - When delta = pi/(2a):
+        The curve often has maximal symmetry for its frequency ratio.
+
+  - General delta:
+        Typically only the rotational symmetry R(pi) (180-degree rotation)
+        survives when a and b are both odd, or no symmetry at all.
+
+Number of lobes:  A Lissajous curve with frequencies (a, b) can have up
+to  (2a-1)(2b-1)  intersection points and generally exhibits  a  lobes
+in the x-direction and  b  lobes in the y-direction.
+
+Special cases among the chosen pairs:
+  - (1, 2):  Figure-eight or parabolic shape (2 lobes)
+  - (1, 3):  Three-lobed curve
+  - (2, 3):  The classic "pretzel" curve (Lissajous knot projection)
+  - (3, 4):  Complex 12-crossing pattern
+
+The phase parameter delta continuously deforms the curve, sweeping through
+different symmetry classes.  At delta = 0, the curve degenerates to a line
+segment; at delta = pi/2, it often achieves maximal area.
+
+In physics, Lissajous curves describe the superposition of two
+perpendicular simple harmonic motions and appear naturally on
+oscilloscopes.  They are also related to the normal modes of a
+rectangular vibrating membrane.
+
+Parameter space:  Each image is parameterised by (a, b, delta) — a
+2-dimensional continuous manifold (for each discrete frequency pair).
+The 10 frequency pairs create 10 topologically distinct curve families
+within the dataset.
