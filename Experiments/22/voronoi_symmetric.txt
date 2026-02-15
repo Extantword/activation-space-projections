@@ -1,0 +1,72 @@
+VORONOI FROM SYMMETRIC SEEDS
+============================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of Voronoi tessellations whose seed
+points are arranged with D_n dihedral symmetry.  The cell boundaries
+(equidistant loci between seeds) inherit the same symmetry, producing
+intricate polygonal tilings that are simultaneously random (in the
+fundamental domain) and highly ordered (globally).
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose  fold = n  from  {3, 4, 5, 6, 8}.
+
+  2. Choose  num_base  seeds  in  {3, ..., 8}.
+
+  3. For each base seed, sample a random position in the fundamental
+     wedge  [0, pi/n]  in polar coordinates:
+         r  in  [3, size/2 - 2],   a  in  [0, pi/n]
+
+  4. Replicate by D_n (n rotations x 2 mirrors):
+         For k = 0..n-1, mirror in {+1, -1}:
+             angle = mirror * a + k * 2*pi/n
+             seed = (cx + r*cos(angle), cy + r*sin(angle))
+
+     Total seeds: up to  2 * n * num_base.
+
+  5. For every pixel (x, y), compute the squared distance to each seed
+     (vectorised with numpy broadcasting) and find the nearest seed index.
+
+  6. Detect boundaries: a pixel is on a boundary if any of its 4-connected
+     neighbours belongs to a different Voronoi cell.
+
+  7. Set boundary pixels to 255, all others to 0.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  D_n  (dihedral group of order 2n)
+
+A Voronoi tessellation is the partition of the plane into regions
+V_i = { x : |x - s_i| <= |x - s_j| for all j },  where s_i are the
+seed points.  The cell boundaries are segments of the perpendicular
+bisectors between pairs of seeds.
+
+Key properties:
+  - The dual of the Voronoi tessellation is the Delaunay triangulation.
+  - Each Voronoi cell is a convex polygon.
+  - If the seeds have symmetry group G, every element of G maps the
+    tessellation to itself.
+
+When the seeds are placed with D_n symmetry, the Voronoi cells in the
+fundamental domain are irregular polygons, but their arrangement has
+exact D_n symmetry.  Cells that straddle a mirror axis are themselves
+symmetric; cells in the interior of the fundamental domain appear in
+orbits of size 2n.
+
+The number of Voronoi cells equals the number of seeds (up to
+2 * n * num_base ≈ 48–128).  The average number of edges per cell
+approaches 6 for large random point sets (a consequence of Euler's
+formula for planar graphs).
+
+Computational note:  For a 64x64 image with ~100 seeds, the brute-force
+nearest-neighbour computation is O(size^2 * num_seeds) ≈ 400,000
+operations — fast enough for real-time generation.
+
+Parameter space:  (n, {r_j, a_j}) — discrete symmetry class plus a
+(2 * num_base)-dimensional continuous seed-position space.

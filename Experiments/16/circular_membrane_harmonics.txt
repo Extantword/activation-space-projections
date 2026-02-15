@@ -1,0 +1,68 @@
+CIRCULAR MEMBRANE HARMONICS (DRUM MODES)
+=========================================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images showing standing-wave patterns on a
+circular drum head.  Each image displays a vibrational mode characterised
+by an angular mode number n (controlling rotational symmetry) and a
+radial frequency (controlling the number of concentric nodal rings).
+The pattern fades to zero at the circular boundary.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Convert pixel coordinates to polar form relative to the image centre:
+         r(x,y)     = sqrt( (x - cx)^2 + (y - cy)^2 )
+         theta(x,y) = atan2( y - cy, x - cx )
+
+  2. Randomise the mode parameters:
+       - n_mode  (angular mode number)  in  {1, 2, ..., 8}
+       - freq    (radial frequency)     in  [0.15, 0.5]
+       - phase                          in  [0, 2*pi)
+
+  3. Compute the mode pattern:
+         angular  = cos(n_mode * theta + phase)
+         radial   = sin(freq * r * pi)
+         envelope = clamp(1 - r / max_r,  0,  1)
+         f        = angular * radial * envelope
+
+  4. Rescale f to [0, 255] (min-max normalisation).
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  D_n  (dihedral group, n rotations + n reflections)
+
+The true vibrational modes of a circular membrane are solutions of the
+2-D wave equation in polar coordinates:
+
+    nabla^2 u  =  (1/c^2) * d^2u/dt^2
+
+Separating variables  u(r, theta, t) = R(r) * Theta(theta) * T(t)  gives:
+    Theta(theta) = cos(n*theta)  or  sin(n*theta)
+    R(r)         = J_n(k_nm * r)    (Bessel function of the first kind)
+
+where  k_nm  is determined by the boundary condition  J_n(k_nm * a) = 0
+(a = membrane radius), and m counts the radial nodes.
+
+Our simplified model replaces the Bessel function with  sin(freq * r * pi)
+and adds a linear decay envelope.  This captures the qualitative features
+— angular lobes and radial rings — without requiring a Bessel function
+implementation.
+
+The angular mode number n determines:
+  - The number of angular nodal lines: n lines through the centre
+  - The rotational symmetry order: D_n (n-fold rotation + mirror)
+
+The radial frequency controls:
+  - The number of concentric nodal circles
+
+Physical examples: drum heads, loudspeaker cones, vibrating cymbals,
+and the quantum-mechanical hydrogen atom (whose orbitals have the same
+angular dependence via spherical harmonics Y_n^m).
+
+Parameter space:  (n_mode, freq, phase) — a mixed space with 8 discrete
+angular modes and a 2-D continuous radial/phase subspace.

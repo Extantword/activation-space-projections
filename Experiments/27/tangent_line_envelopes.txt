@@ -1,0 +1,78 @@
+TANGENT LINE ENVELOPES
+======================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of tangent-line patterns.  A family
+of straight lines, each tangent to a hidden circle, is drawn across the
+image.  The envelope of the line family (the curve all lines touch) is
+the circle itself, but the collection of tangent lines fills the image
+with a dense, luminous pattern of overlapping lines that has continuous
+rotational symmetry.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Place the centre at (cx, cy) = (size/2, size/2).
+
+  2. Randomise:
+       - circle_r   in  [8, 0.3*size]   (radius of the hidden circle)
+       - num_lines  in  {20, ..., 60}
+
+  3. For each line  j = 0, 1, ..., num_lines-1:
+
+       a. Compute the tangent angle:
+              theta_j = 2*pi * j / num_lines
+
+       b. The point of tangency on the circle:
+              T = (cx + circle_r * cos(theta_j),
+                   cy + circle_r * sin(theta_j))
+
+       c. The tangent direction (perpendicular to the radius):
+              d = (-sin(theta_j),  cos(theta_j))
+
+       d. Extend the line by  L = 0.8 * size  in both directions:
+              P1 = T + L * d
+              P2 = T - L * d
+
+       e. Draw the line segment P1-P2 (grey on black).
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  approximately C_{num_lines}  (discrete rotation),
+                  exact SO(2) in the continuous limit.
+
+The envelope of a one-parameter family of lines
+    F(x, y, theta) = 0
+is the curve satisfying both  F = 0  and  dF/d(theta) = 0.
+
+For tangent lines to a circle of radius R centred at the origin:
+    F(x, y, theta) = x*cos(theta) + y*sin(theta) - R
+
+The envelope equations give:
+    x = R*cos(theta),   y = R*sin(theta)   — the circle itself.
+
+Each tangent line is at distance R from the centre.  The density of
+line intersections is highest near the circle and decreases outward,
+creating a bright annular "glow" around the envelope.
+
+The number of intersection points of the full line family is
+C(num_lines, 2) = num_lines * (num_lines - 1) / 2.  These intersections
+form a dense point set that approximates the circle for large num_lines.
+
+Dual interpretation:  In projective duality, points and lines are
+interchanged.  The circle (a conic) dualises to another conic, and the
+tangent-line pattern is the dual representation of the circle.
+
+Generalisations:
+  - Tangent lines to an ellipse produce a similar pattern with D2
+    symmetry.
+  - Tangent lines to more complex curves (cardioid, astroid) produce
+    richer envelopes with cusps and branches.
+
+Parameter space:  (circle_r, num_lines) — a 2-D space (one continuous,
+one discrete).  Visually, circle_r controls the size of the bright
+ring, and num_lines controls the fineness of the line texture.

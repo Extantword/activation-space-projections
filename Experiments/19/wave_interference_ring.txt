@@ -1,0 +1,72 @@
+WAVE INTERFERENCE RING
+======================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images showing the interference pattern
+produced by N point wave sources equally spaced on a ring.  Each source
+emits circular sinusoidal waves, and the image is the sum of all wave
+amplitudes at every pixel.  The N-fold rotational symmetry of the source
+arrangement is exactly preserved in the interference pattern.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose the number of sources:  N  from  {3, 4, 5, 6, 8}.
+
+  2. Randomise:
+       - ring_radius  in  [0.15*size, 0.35*size]
+       - freq         in  [0.5, 1.5]
+
+  3. Place the sources equally on a circle of radius ring_radius:
+         s_k = ( cx + ring_radius * cos(2*pi*k/N),
+                 cy + ring_radius * sin(2*pi*k/N) )
+       for  k = 0, 1, ..., N-1.
+
+  4. For every pixel (x, y), compute the distance to each source and
+     sum the wave contributions:
+
+         f(x,y) = sum_{k=0}^{N-1}  sin( freq * r_k )
+
+     where  r_k = sqrt( (x - s_k_x)^2 + (y - s_k_y)^2 ).
+
+  5. Min-max normalise f to [0, 255].
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  C_N  (cyclic group of order N)
+
+Since the sources are related by rotations of  2*pi/N,  and the wave
+equation is isotropic, the superposition inherits the full C_N rotational
+symmetry.  (The sources also have D_N symmetry, but the continuous
+sine waves break the reflection symmetry only if an asymmetric phase
+is added — which we do not, so D_N is actually preserved.)
+
+The interference pattern can be analysed using the product-to-sum
+identity.  For two sources separated by distance d, the constructive
+interference maxima lie on confocal hyperbolas:
+
+    r1 - r2 = m * lambda     (m integer, lambda = 2*pi/freq)
+
+With N > 2 sources, the maxima are the intersections of  C(N,2)  such
+hyperbola families.  For regularly-spaced sources on a ring, these
+intersections form a lattice-like pattern with N-fold symmetry.
+
+At the centre of the ring (equidistant from all sources), all waves
+arrive in phase, creating a bright central maximum:
+    f(centre) = N * sin(freq * ring_radius)
+
+The first zero ring around the centre occurs approximately where
+the path-length differences cause destructive interference.
+
+Physical analogue:  This is the far-field / near-field interference
+of a circular phased array, commonly encountered in acoustics (speaker
+arrays), optics (diffraction from circular apertures), and radio
+(antenna arrays).
+
+Parameter space:  (N, ring_radius, freq) — discrete choice of N
+partitions the dataset into 5 symmetry classes; within each class,
+(ring_radius, freq) is a 2-D continuous manifold.

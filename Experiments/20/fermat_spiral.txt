@@ -1,0 +1,67 @@
+FERMAT SPIRAL / PHYLLOTAXIS
+===========================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of phyllotactic (sunflower-like)
+point patterns.  Dots are placed along a Fermat spiral using the golden
+angle, producing the familiar pattern seen in sunflower seed heads, pine
+cones, and many other botanical structures.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Define the golden angle:
+         phi = (3 - sqrt(5)) * pi  ≈  2.3999... rad  ≈  137.508 degrees
+
+  2. Randomise:
+       - num_points  in  {80, ..., 300}
+       - dot_r       in  [0.8, 2.0]  (dot radius)
+       - angle_offset in [0, 2*pi)   (global rotation)
+
+  3. Compute the scale factor so the outermost point fits in the image:
+         c = (size/2 - 4) / sqrt(num_points)
+
+  4. For  k = 0, 1, ..., num_points-1:
+         r_k     = c * sqrt(k)
+         theta_k = k * golden_angle  +  angle_offset
+         x_k     = cx + r_k * cos(theta_k)
+         y_k     = cy + r_k * sin(theta_k)
+
+     Draw a filled circle of radius dot_r at each (x_k, y_k).
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry:  approximate C_F  where F is a Fibonacci number
+
+The golden angle  phi = 2*pi*(1 - 1/Phi)  (where Phi = (1+sqrt(5))/2
+is the golden ratio) is the most irrational angle — the one whose
+continued fraction converges most slowly.
+
+Because of this irrationality, no exact rotational symmetry exists.
+However, the pattern has striking APPROXIMATE symmetries related to
+Fibonacci numbers.  Counting the visible spirals in each direction
+gives consecutive Fibonacci numbers (e.g. 13 clockwise, 21
+counterclockwise), because the Fibonacci convergents of 1/Phi
+(1/1, 1/2, 2/3, 3/5, 5/8, 8/13, 13/21, ...) are the best rational
+approximations to the golden angle.
+
+The Fermat spiral  r = c*sqrt(k)  ensures uniform areal density:
+the number of points in any annulus of fixed width is approximately
+constant.  This is the "optimal packing" property of phyllotaxis.
+
+Voronoi cells of the point pattern are approximately regular pentagons
+and hexagons, connecting phyllotaxis to quasicrystalline order and
+Penrose tilings (both governed by the golden ratio).
+
+Botany:  The phyllotactic pattern arises from a simple growth rule —
+each new primordium forms at the angular position that maximises its
+distance from existing primordia.  This greedy algorithm converges to
+the golden-angle placement.
+
+Parameter space:  (num_points, dot_r, angle_offset) — effectively
+2-D continuous (the global rotation is a trivial symmetry), with
+num_points controlling the pattern density.

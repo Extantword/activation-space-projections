@@ -1,0 +1,74 @@
+FRIEZE PATTERNS
+===============
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of frieze (strip) patterns.  A small
+random motif is drawn within one cell and then tiled horizontally across
+the entire image width.  Each cell also has internal bilateral symmetry
+(a vertical mirror within the cell), producing one of the classic frieze-
+group symmetry types.  The result is a vertically-spanning, horizontally-
+repeating ornamental strip.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose a cell width:  cell_w  from  {8, 16, 32}  pixels.
+     Number of cells:  num_cells = size / cell_w.
+
+  2. Generate a random motif in the right half of one cell:
+       - num_strokes  in  {2, 3, 4, 5}
+       - For each stroke, two random endpoints:
+             x1, x2  in  [cell_w/2, cell_w-1]
+             y1, y2  in  [2, size-2]
+
+  3. For each cell  c = 0, 1, ..., num_cells-1:
+
+       x_offset = c * cell_w
+
+       For each stroke (x1, y1, x2, y2):
+         a. Draw the right-half stroke at (x_offset + x1, y1) to
+            (x_offset + x2, y2).
+         b. Draw the mirrored left-half stroke at (x_offset + cell_w - x1, y1)
+            to (x_offset + cell_w - x2, y2).
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  a frieze group containing translations and reflections
+
+The seven frieze groups (the only symmetry groups of a strip pattern)
+are classified by their combination of:
+  - Translation (T):         always present
+  - Vertical reflection (V): mirror perpendicular to the strip
+  - Horizontal reflection (H): mirror along the strip
+  - Glide reflection (G):   translation + horizontal reflection
+  - 180-degree rotation (R): half-turn
+
+The seven groups:
+  p1    : T only
+  p11m  : T + H
+  p11g  : T + G
+  p2    : T + R
+  p2mm  : T + V + H + R
+  p2mg  : T + V + G + R
+  p2gm  : T + G + H + R (effectively same as p2mg up to alignment)
+
+Our construction enforces:
+  - Translation with period cell_w
+  - Vertical mirror within each cell
+This corresponds to frieze group p2mm (if the motif also has horizontal
+symmetry) or p11m (vertical mirrors plus translation).
+
+Frieze patterns are among the most ancient decorative motifs, appearing
+in Greek pottery, Maori carvings, and Art Deco architecture.
+
+The image as a whole has approximate translational symmetry (exact up to
+boundary effects at the image edges).  With num_cells = 4 to 8
+repetitions visible, the periodicity is clearly perceptible.
+
+Parameter space:  (cell_w, num_strokes, stroke endpoints) — a variable-
+dimensional space.  For 4 strokes, each cell motif has 4 * 4 = 16 real
+parameters (the right-half endpoints), and the tiling is deterministic.

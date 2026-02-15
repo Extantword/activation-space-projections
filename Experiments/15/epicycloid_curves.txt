@@ -1,0 +1,67 @@
+EPICYCLOID CURVES
+=================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of epicycloid curves — the paths
+traced by a point on a small circle rolling on the OUTSIDE of a fixed
+circle.  These are the "outward" counterparts of the hypotrochoids
+(Experiment 6, rolling inside).  Epicycloids produce cusped, lobed
+patterns with rotational symmetry.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Randomise the curve parameters:
+       - R  (fixed circle radius)   in  [8, 20]
+       - r  (rolling circle radius) in  [3, 0.7*R]
+       - d  (pen offset from rolling centre) in  [0.3*r, 1.2*r]
+
+  2. Trace the curve over 20 revolutions (2000 sample points):
+
+       x(t) = (R + r) * cos(t)  -  d * cos((R + r) * t / r)
+       y(t) = (R + r) * sin(t)  -  d * sin((R + r) * t / r)
+
+  3. Scale the point set to fit within the image (3-pixel margin).
+
+  4. Draw the polyline (white on black).
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+An epitrochoid is traced by a point at distance d from the centre of a
+circle of radius r rolling without slipping on the outside of a fixed
+circle of radius R.
+
+Special cases:
+  - d = r :  epicycloid (the point is on the rim)
+  - R = r :  the curve is a cardioid  (a single-cusped heart shape)
+  - R = 2r:  the curve is a nephroid  (kidney shape, 2 cusps)
+  - R/r = n (integer):  the curve has n cusps and C_n symmetry
+
+The parametric equations are:
+    x(t) = (R + r) cos(t) - d cos((R + r) t / r)
+    y(t) = (R + r) sin(t) - d sin((R + r) t / r)
+
+In complex notation:
+    z(t) = (R + r) exp(it)  -  d exp(i(R+r)t/r)
+
+This is a sum of two circular motions with frequencies +1 and +(R+r)/r.
+The interference creates the lobed shape.
+
+Comparison with hypotrochoid (Experiment 6):
+  - Hypotrochoid: rolling circle INSIDE, frequencies +1 and -(R-r)/r
+  - Epitrochoid:  rolling circle OUTSIDE, frequencies +1 and +(R+r)/r
+  - Hypotrochoids tend to produce "inward" lobes; epicycloids produce
+    "outward" cusps.
+
+The maximum radial extent is  R + r + d,  and the minimum is
+|R + r - d|.  When d > R + r, the curve has inner loops.
+
+Rotational symmetry:  If R/r = p/q in lowest terms, the curve closes
+after q turns and has p-fold symmetry (C_p).
+
+Parameter space:  (R, r, d) — 3 continuous dimensions, effectively
+2-D after rescaling.

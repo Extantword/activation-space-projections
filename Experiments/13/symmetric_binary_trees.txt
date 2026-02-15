@@ -1,0 +1,77 @@
+SYMMETRIC BINARY TREES
+======================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of fractal binary trees that grow
+upward from the bottom centre.  At every branching point, the left and
+right sub-branches use identical angles and shrinkage factors, producing
+exact bilateral (left-right) symmetry.  The trees resemble botanical
+branching patterns or vascular networks.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Set the starting point at (size/2, size-3) — bottom centre.
+
+  2. Randomise the tree parameters:
+       - trunk_length   in  [0.12*size, 0.22*size]
+       - max_depth      in  {5, 6, 7, 8}
+       - branch_angle   in  [pi/8, pi/3]    (22.5 to 60 degrees)
+       - shrink         in  [0.60, 0.78]
+
+  3. Recursively draw the tree starting upward (angle = -pi/2):
+
+       _draw_tree(x, y, angle, length, depth):
+         - If depth > max_depth or length < 1.5: stop.
+         - Compute the endpoint:
+               ex = x + length * cos(angle)
+               ey = y + length * sin(angle)
+         - Draw a line from (x, y) to (ex, ey).
+         - Recurse for the left child:
+               angle_left  = angle - branch_angle
+               length_left = length * shrink
+         - Recurse for the right child:
+               angle_right = angle + branch_angle
+               length_right = length * shrink
+
+     Because both children use the same branch_angle and shrink, the
+     tree is perfectly mirror-symmetric about its trunk.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  Z2  (bilateral symmetry about the vertical trunk)
+
+A symmetric binary tree of depth d has  2^d  leaf nodes and
+2^(d+1) - 1  total nodes.  The number of line segments is  2^(d+1) - 2.
+
+The tree structure is equivalent to a deterministic L-system with the
+production rule:
+    F  ->  F [ -angle F ] [ +angle F ]
+
+where F means "draw forward", and the brackets denote push/pop of the
+turtle state.
+
+Self-similarity:  Each subtree is a scaled copy of the whole tree
+(scale factor = shrink).  The fractal (Hausdorff) dimension of the
+tree boundary depends on the branching angle and shrink factor.  For a
+symmetric binary tree with shrinkage ratio s:
+
+    D = log(2) / log(1/s)
+
+With  s = 0.7,  D ≈ log(2)/log(1.43) ≈ 1.94, approaching a
+space-filling curve.
+
+The branching angle determines the visual character:
+  - Small angles (pi/8):  tall, narrow, conifer-like
+  - Large angles (pi/3):  broad, spreading, deciduous-like
+  - At  branch_angle = pi/4  and  shrink = 1/sqrt(2),  the tree tiles
+    the plane without overlap (the Pythagoras tree).
+
+Parameter space:  (trunk_length, max_depth, branch_angle, shrink) — a
+4-dimensional mixed discrete-continuous space.  The visual appearance
+is primarily controlled by (branch_angle, shrink), a 2-D continuous
+subspace.

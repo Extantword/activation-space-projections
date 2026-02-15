@@ -1,0 +1,59 @@
+ROSE CURVES
+===========
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of rhodonea (rose) curves — polar
+curves of the form  r = cos(k*theta).  Depending on whether k is odd or
+even, the curve produces k or 2k petals respectively, each arranged with
+rotational symmetry around the origin.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose a petal number  k  from {2, 3, 4, 5, 6, 7, 8}.
+  2. Choose a random phase offset  phi  in  [0, 2*pi).
+  3. Set  amplitude = size/2 - 3.
+  4. Evaluate the parametric form at 601 values of  theta  in  [0, 2*pi]:
+
+         r(theta) = amplitude * cos(k * theta + phi)
+         x(theta) = cx + r * cos(theta)
+         y(theta) = cy + r * sin(theta)
+
+     When r < 0 the point naturally maps to the opposite side of the
+     origin (theta + pi), which is how the second set of petals appears
+     for even k.
+
+  5. Draw the resulting polyline (white on black).
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:
+  - k odd:   D_k  (k petals, k-fold rotation + k mirror axes)
+  - k even:  D_{2k}  (2k petals, 2k-fold rotation + 2k mirror axes)
+
+The rose curve  r = cos(k*theta)  is a special case of the more general
+family  r = cos(k*theta + phi).  The phase phi rotates the entire figure
+by  phi/k  radians.
+
+For integer k the curve is algebraic (expressible as a polynomial in
+x and y).  The Cartesian equation can be derived by substituting
+r^2 = x^2 + y^2 and r*cos(theta) = x:
+
+  - k=2:  (x^2 + y^2)^3 = 4x^2*y^2   (four-petalled rose)
+  - k=3:  the equation is degree 8
+
+The area enclosed by a single petal is  A = pi/(4k)  (in the unit
+circle).  The total area of all petals is  A_total = pi/4  for odd k,
+and  A_total = pi/2  for even k — independent of k.
+
+Rose curves are related to Chebyshev polynomials: the radial function
+cos(k*theta) = T_k(cos(theta)) where T_k is the k-th Chebyshev
+polynomial of the first kind.
+
+The phase parameter phi gives each petal number its own 1-D manifold
+of orientations.  Combined with the discrete choice of k, the full
+parameter space is  {2..8} x [0, 2*pi).
