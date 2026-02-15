@@ -1,0 +1,51 @@
+RECTANGULAR QUANTUM MODES (PARTICLE-IN-A-BOX)
+==============================================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images showing the probability density
+of a quantum particle confined to a 2D square well.  Each image
+displays  |psi_{m,n}(x,y)|^2 = sin^2(m*pi*x) * sin^2(n*pi*y),
+producing a smooth, grid-like intensity pattern where bright regions
+indicate high probability and dark nodal lines indicate zero
+probability.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Normalise pixel coordinates to [0, 1]:
+         x_norm = x / size,   y_norm = y / size
+
+  2. Choose mode numbers:  m, n  in  {1, ..., 8}.
+
+  3. Compute the probability density at every pixel:
+         |psi|^2 = sin^2(m * pi * x_norm) * sin^2(n * pi * y_norm)
+
+  4. Scale to [0, 255]  (the max of sin^2 * sin^2 is always 1).
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry:  D2 when m != n;  D4 when m = n.
+
+The stationary states of a particle in a 2D infinite square well
+are separable products of 1D solutions:
+
+    psi_{m,n}(x,y) = (2/L) * sin(m*pi*x/L) * sin(n*pi*y/L)
+
+with energies  E_{m,n} = (pi^2 * hbar^2 / (2 * mass * L^2)) * (m^2 + n^2).
+
+The nodal lines (where psi = 0) form a rectangular grid:
+  - Vertical lines at  x = k/m  for k = 0, 1, ..., m
+  - Horizontal lines at  y = k/n  for k = 0, 1, ..., n
+
+The number of nodal cells (bright rectangles) is  m * n.
+
+Degeneracy:  states (m, n) and (n, m) have the same energy when m != n
+but different nodal patterns, rotated by 90 degrees.  This is the
+simplest example of quantum degeneracy.
+
+Parameter space:  (m, n) — a 2D discrete lattice with 64 states.
+The images form a visually smooth 2-parameter family.

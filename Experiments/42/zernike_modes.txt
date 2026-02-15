@@ -1,0 +1,63 @@
+ZERNIKE POLYNOMIAL MODES (OPTICAL ABERRATIONS)
+===============================================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images showing individual Zernike
+polynomial modes on a circular aperture.  Each image displays
+Z_n^m(r, theta) = R_n^m(r) * cos(m*theta)  (or sin for negative m),
+producing smooth, wave-like intensity patterns confined to a disk.
+These are the standard basis functions for describing optical
+wavefront aberrations in telescopes, microscopes, and the human eye.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Convert pixel coordinates to normalised polar form:
+         rho = r / max_r  (clipped to [0, 1])
+         theta = atan2(y - cy, x - cx)
+
+  2. Choose a valid Zernike mode (n, m) with  n in {0..8},
+     |m| <= n, and n - |m| even.
+
+  3. Compute the radial polynomial:
+         R_n^m(rho) = sum_{k=0}^{(n-|m|)/2}
+             (-1)^k * (n-k)! / (k! * ((n+|m|)/2-k)! * ((n-|m|)/2-k)!)
+             * rho^(n-2k)
+
+  4. Compute the full Zernike function:
+         Z = R_n^m(rho) * cos(|m|*theta)    (m >= 0)
+         Z = R_n^m(rho) * sin(|m|*theta)    (m < 0)
+
+  5. Apply a circular mask (zero outside the unit disk).
+  6. Normalise to [0, 255].
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry:  D_{|m|}  for |m| >= 1;  SO(2) for m = 0 (radially symmetric)
+
+Zernike polynomials form a complete orthogonal basis on the unit disk:
+    integral_disk  Z_n^m(r,theta) * Z_n'^m'(r,theta) * r dr dtheta
+        = delta_{nn'} * delta_{mm'} * normalisation
+
+Named modes (Noll ordering):
+  Z_0^0  = 1                           (piston)
+  Z_1^1  = r*cos(theta)                (tilt X)
+  Z_2^0  = 2*r^2 - 1                   (defocus)
+  Z_2^2  = r^2*cos(2*theta)            (astigmatism)
+  Z_3^1  = (3r^3 - 2r)*cos(theta)      (coma)
+  Z_3^3  = r^3*cos(3*theta)            (trefoil)
+  Z_4^0  = 6r^4 - 6r^2 + 1            (spherical aberration)
+
+The radial polynomial R_n^m has  (n - |m|) / 2  radial zeros (rings)
+and the angular factor has |m| nodal lines through the centre.
+
+Applications:  adaptive optics, ophthalmology (corneal topography),
+optical testing, atmospheric turbulence modelling (Kolmogorov theory
+decomposes wavefront distortion into Zernike coefficients).
+
+Parameter space:  45 valid (n, m) pairs for n <= 8 — a finite
+discrete space.

@@ -1,0 +1,65 @@
+SUPERPOSED HARMONIC MODES (MULTI-MODAL WAVE FIELD)
+===================================================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of complex wave fields formed by
+adding 2-5 angular-radial harmonic modes together.  Each mode is
+    A * cos(n * theta + phi) * sin(freq * r * pi)
+and the sum of several such modes with different angular orders and
+radial frequencies creates richly textured, often asymmetric wave
+patterns that combine elements of all the individual harmonics.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Pre-compute polar coordinates from the image centre:
+         r, theta
+
+  2. Choose  num_modes  in  {2, 3, 4, 5}.
+
+  3. For each mode, randomise:
+         n_mode  in  {0, ..., 8}       (angular order)
+         freq    in  [0.15, 0.8]       (radial frequency)
+         phase   in  [0, 2*pi)
+         amp     in  [0.3, 1.0]
+
+  4. Sum all modes:
+         pattern = sum_k  amp_k * cos(n_k * theta + phase_k)
+                                * sin(freq_k * r * pi)
+
+  5. Apply circular envelope:
+         pattern *= clamp(1 - r / max_r, 0, 1)
+
+  6. Normalise to [0, 255].
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry:  varies — depends on the GCD of the angular mode numbers.
+
+If the angular orders are {n_1, n_2, ..., n_K}, the symmetry of the
+sum is  C_g  where  g = GCD(n_1, ..., n_K).  Special cases:
+  - All modes have n = 0: SO(2) (radially symmetric)
+  - GCD = 1: C_1 (no rotational symmetry, but still structured)
+  - A single dominant mode: approximate C_n for that mode
+
+The sum is an element of the function space spanned by the
+"cylindrical harmonics" — the eigenfunctions of the Laplacian in
+polar coordinates.  This is the standard Fourier decomposition used
+in solving the wave equation on a disk.
+
+Connection to physics:  The individual modes are vibrational modes
+of a circular drum (Experiment 16).  Their superposition represents
+a general vibration state — the instantaneous displacement of a drum
+struck at an arbitrary point.
+
+The superposition principle means the resulting field can exhibit:
+  - Constructive interference (bright spots where modes align)
+  - Destructive interference (dark regions where modes cancel)
+  - Complex nodal patterns (where the sum crosses zero)
+
+Parameter space:  (num_modes, {n_k, freq_k, phase_k, amp_k}) —
+variable-dimensional: 4 * num_modes + 1 continuous parameters.
