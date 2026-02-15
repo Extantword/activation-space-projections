@@ -1,0 +1,53 @@
+KOCH-LIKE FRACTAL BOUNDARIES
+============================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of Koch fractal curves.  Starting
+from a regular polygon (3-6 sides), Koch subdivision is applied to
+every edge for 2-4 iterations.  Each iteration replaces a straight
+segment with four segments forming an equilateral bump, producing a
+self-similar fractal boundary with D_n symmetry.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose the base polygon:  sides  from  {3, 4, 5, 6}.
+  2. Choose  iterations  in  {2, 3, 4}  and a random rotation.
+  3. Create the initial polygon vertices (CCW winding).
+  4. For each iteration, apply Koch subdivision to every edge:
+       Given edge p1->p2 with vector (dx, dy):
+         a = p1 + (dx,dy)/3
+         b = p1 + 2(dx,dy)/3
+         peak = midpoint(a,b) + (sqrt(3)/6) * outward_normal
+       Replace the edge with 4 segments: p1->a->peak->b->p2
+  5. Scale the resulting points to fit and draw as a polyline.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  D_{sides}  (preserved at every iteration)
+
+After d iterations, the number of line segments is:
+    N_d = sides * 4^d
+
+Each segment has length  L_d = L_0 / 3^d  (where L_0 is the initial
+edge length).  The total perimeter is:
+    P_d = sides * L_0 * (4/3)^d  ->  infinity as d -> infinity
+
+The fractal (Hausdorff) dimension of the Koch curve is:
+    D = log(4) / log(3) ≈ 1.2619
+
+This is greater than 1 (a smooth curve) but less than 2 (a filled
+area), reflecting the "roughness" of the fractal boundary.
+
+The Koch snowflake (starting from an equilateral triangle) has finite
+enclosed area:
+    A = (2/5) * A_triangle * 8/5 = 2*sqrt(3)/5 * s^2
+
+despite its infinite perimeter — a hallmark of fractal geometry.
+
+Parameter space:  (sides, iterations, rotation) — 4 * 3 = 12
+discrete configurations times a continuous rotation.

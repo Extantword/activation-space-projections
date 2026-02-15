@@ -1,0 +1,41 @@
+HYPOCYCLOID (CUSPED CURVES)
+===========================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of hypocycloid curves — the path
+traced by a point on the rim of a circle rolling inside a larger fixed
+circle.  When the ratio R/r = k is an integer, the curve has exactly k
+outward-pointing cusps:  k=3 gives the deltoid, k=4 the astroid, etc.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose  k  from  {3, 4, 5, 6, 7, 8}.  Set R = 1, r = 1/k.
+  2. Choose a random rotation angle.
+  3. Evaluate at 801 points:
+         x(t) = (R-r)*cos(t) + r*cos((R-r)*t/r)
+         y(t) = (R-r)*sin(t) - r*sin((R-r)*t/r)
+  4. Apply global rotation, scale to fit, draw as a polyline.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  D_k  (k rotations + k reflections)
+
+The hypocycloid with integer ratio k has k cusps at equal angular
+intervals.  It is a special case of the hypotrochoid (Experiment 6)
+with pen distance d = r (the point is on the rolling circle's rim).
+
+Notable special cases:
+  - k=2 : line segment (degenerate)
+  - k=3 : deltoid  — the envelope of the Simson lines of a triangle
+  - k=4 : astroid  — has the equation  x^{2/3} + y^{2/3} = R^{2/3}
+
+The arc length of a full k-cusped hypocycloid is  L = 8R(k-1)/k.
+The enclosed area is  A = pi*R^2*(k-1)*(k-2)/k^2.
+
+Parameter space:  (k, rotation) — 6 discrete cusp counts times a
+continuous rotation angle.

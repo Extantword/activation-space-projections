@@ -1,0 +1,51 @@
+OVERLAPPING CIRCLES (VENN-RING PATTERNS)
+========================================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of N overlapping circle outlines.
+The circles have equal radii and their centres sit on the vertices of
+a regular N-gon.  The intersecting arcs create petal- and lens-shaped
+regions with D_N dihedral symmetry.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose  N  from  {3, 4, 5, 6, 7, 8}.
+  2. Choose  ring_r  (distance from image centre to circle centres)
+     and  circle_r  (radius of each circle).  Choose a phase offset.
+  3. For each circle k = 0..N-1:
+       Centre at  (cx + ring_r * cos(2*pi*k/N + phase),
+                   cy + ring_r * sin(2*pi*k/N + phase))
+       Draw the circle outline (PIL ellipse with outline only).
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry group:  D_N  (N rotations + N reflections)
+
+The number of intersection points between two circles depends on
+their separation d and their radii r:
+  - d > 2r :  no intersection
+  - d = 2r :  tangent  (1 point)
+  - d < 2r :  two intersection points
+
+For N circles with centres on a ring of radius R, each adjacent pair
+is separated by  d = 2 * R * sin(pi/N).  The circles overlap when
+circle_r > R * sin(pi/N).
+
+The lens-shaped overlap between two circles (a vesica piscis when the
+circles pass through each other's centres) has area:
+  A_lens = 2 * r^2 * arccos(d / (2r)) - (d/2) * sqrt(4r^2 - d^2)
+
+For the full N-circle arrangement, the intersection pattern includes
+regions covered by exactly 1, 2, ..., N circles.  The boundaries of
+these regions form the visible arc pattern.
+
+The pattern is related to the "Flower of Life" in sacred geometry
+(N=6, R = r) and to Venn diagrams in set theory.
+
+Parameter space:  (N, ring_r, circle_r, phase) — 6 discrete symmetry
+classes times a 3-D continuous subspace.

@@ -1,0 +1,56 @@
+SPIRALING REGULAR POLYGONS (POLYGON VORTEX)
+============================================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of nested regular polygons that
+shrink exponentially and twist steadily toward the centre, creating
+a vortex or whirlpool effect.  Unlike Experiment 4 (linear shrinkage,
+small rotation), this uses geometric decay and larger twist angles.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose  sides  from  {3, 4, 5, 6, 8}.
+  2. Choose:
+       num_layers        in  {10, ..., 30}
+       shrink            in  [0.85, 0.95]   (per-layer scale factor)
+       twist_per_layer   in  [pi/20, pi/5]  (radians)
+       base_rotation     in  [0, 2*pi)
+  3. For layer = 0, 1, ..., num_layers-1:
+       radius   = (size/2 - 2) * shrink^layer
+       rotation = base_rotation + layer * twist_per_layer
+       Draw a regular sides-gon at this radius and rotation.
+       Stop if radius < 2 pixels.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry:  C_{sides}  (cyclic, no reflection due to spiral twist)
+
+Each individual polygon has D_{sides} symmetry, but the progressive
+twist breaks all mirror symmetries, leaving only C_{sides} pure
+rotational symmetry.
+
+The radius follows a geometric sequence:
+    r(layer) = r_0 * s^layer
+
+This means the polygons converge to the centre but never reach it
+(Zeno-like).  The total number of visible layers is approximately
+    N_visible ≈ log(r_min / r_0) / log(s)
+
+The spiral angle accumulates as:
+    theta(layer) = theta_0 + layer * delta_theta
+
+If delta_theta / (2*pi/sides) is rational, say p/q in lowest terms,
+then after q layers the polygon returns to the same orientation,
+creating a repeating spiral pattern.  If irrational, no two layers
+have the same orientation.
+
+The visual effect is a polygon analogue of the logarithmic spiral
+(r = r_0 * exp(-alpha * theta)), where alpha = -log(s) / delta_theta.
+
+Parameter space:  (sides, num_layers, shrink, twist, base_rotation) —
+5 discrete polygon types times a 4-D continuous subspace.

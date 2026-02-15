@@ -1,0 +1,57 @@
+HARMONIC ORBITS (MULTI-FREQUENCY CIRCULAR MOTION)
+==================================================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of curves traced by the sum of
+3-5 circular motions at different integer frequencies:
+    z(t) = sum_k  A_k * exp(i * f_k * t)
+This generalises the 2-frequency spirograph (Experiments 6, 14, 15)
+to higher-order harmonic combinations, producing intricate, often
+self-intersecting closed curves.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Choose  K  harmonics  in  {3, 4, 5}.
+  2. Sample K distinct integer frequencies from {1, ..., 14}.
+  3. For each harmonic, choose:
+       amplitude  in  [0.3, 1.0]
+       phase      in  [0, 2*pi)
+  4. Evaluate at 2001 points:
+       x(t) = sum_k  A_k * cos(f_k * t + phi_k)
+       y(t) = sum_k  A_k * sin(f_k * t + phi_k)
+  5. Scale to fit and draw as a polyline.
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry:  C_g  where  g = GCD(f_1, f_2, ..., f_K)
+
+A sum of circular motions is a finite trigonometric polynomial in
+the complex plane.  The resulting curve is always closed (periodic
+with period 2*pi / GCD).
+
+When all frequencies are coprime (GCD = 1), the only symmetry is
+the identity — the curve has C_1 (no non-trivial rotational symmetry).
+When g = GCD > 1, the curve has C_g symmetry because replacing t by
+t + 2*pi/g maps each term exp(i*f_k*t) to exp(i*f_k*t) * exp(2*pi*i*f_k/g),
+and since g divides every f_k, each phase factor is 1.
+
+The number of self-intersections can be very large.  For K harmonics
+with frequencies f_1 < ... < f_K, an upper bound on the number of
+double points is proportional to (sum of frequencies)^2.
+
+Connection to Fourier series:  Any closed planar curve can be
+decomposed as a sum of circular motions (its Fourier series).  Our
+images use a finite truncation with randomly chosen harmonics,
+sampling the space of all closed curves.
+
+The spirograph (K=2) traces an epitrochoid or hypotrochoid; K >= 3
+harmonics produce qualitatively richer curves with more crossing
+patterns and symmetry-breaking possibilities.
+
+Parameter space:  (K, {f_k, A_k, phi_k}) — variable-dimensional:
+3*K + 1 parameters (3 per harmonic plus K itself).
