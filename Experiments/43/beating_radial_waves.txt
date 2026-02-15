@@ -1,0 +1,63 @@
+BEATING RADIAL WAVES (AMPLITUDE-MODULATED RIPPLES)
+===================================================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images of concentric ripple patterns
+with visible amplitude modulation (beats).  Two circular waves with
+slightly different frequencies emanate from the image centre; their
+sum creates the classic beating phenomenon where the ripple intensity
+slowly pulses between loud and quiet zones.  Every pixel has a smooth,
+continuously-computed intensity value, producing the rich wave-field
+aesthetic of physical water ripples or acoustic interference.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Compute radial distance from the centre:
+         r(x,y) = sqrt((x - cx)^2 + (y - cy)^2)
+
+  2. Choose two close frequencies:
+         f_base  in  [0.4, 1.2]
+         df      in  [0.03, 0.15]
+         f1 = f_base + df/2,   f2 = f_base - df/2
+
+  3. Choose a random phase offset.
+
+  4. Compute:
+         pattern = sin(f1 * r + phase) + sin(f2 * r)
+
+  5. Apply a circular fade:
+         pattern *= clamp(1 - r / (size/2), 0, 1)
+
+  6. Normalise to [0, 255].
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry:  SO(2)  (full continuous rotational symmetry)
+
+The sum of two sinusoids can be rewritten using the product-to-sum
+identity:
+    sin(f1*r) + sin(f2*r) = 2 * cos(df*r/2) * sin(fc*r/2)
+
+where  df = f1 - f2  (beat frequency) and  fc = f1 + f2  (carrier).
+
+The carrier  sin(fc*r/2)  produces fine concentric rings.
+The envelope  cos(df*r/2)  produces slow amplitude modulation.
+The visible "beat length" (distance between envelope nodes) is
+    L_beat = 2*pi / df.
+
+Physical analogues:
+  - Two tuning forks of slightly different pitch
+  - Two stones dropped in a pond close together
+  - Acoustic room modes with close frequencies
+
+The circular fade envelope prevents aliasing artefacts at the image
+boundary and gives the pattern a natural "pond ripple" look.
+
+Parameter space:  (f_base, df, phase) — a 3-D continuous space.  The
+ratio df / f_base controls how many beats are visible; f_base controls
+the fineness of the carrier ripples.

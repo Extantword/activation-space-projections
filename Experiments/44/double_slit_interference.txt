@@ -1,0 +1,64 @@
+DOUBLE-SLIT INTERFERENCE (COHERENT TWO-SOURCE FRINGES)
+======================================================
+
+1. WHAT IS IT
+-------------
+A dataset of 64x64 grayscale images showing the interference pattern
+from two coherent point sources (the "double slit" or Young's
+experiment).  The intensity at each pixel is the squared sum of two
+circular waves, producing smooth hyperbolic fringe lines with
+bilateral symmetry about both the axis connecting the sources and the
+perpendicular bisector.
+
+
+2. GENERATION ALGORITHM
+-----------------------
+For each image:
+
+  1. Place two point sources symmetrically on the vertical axis:
+         S1 = (cx, cy - d/2)
+         S2 = (cx, cy + d/2)
+     where  d  is the slit separation.
+
+  2. Randomise:
+         d  (slit separation)  in  [0.05*size, 0.3*size]
+         k  (wavenumber)       in  [0.5, 2.0]
+
+  3. For every pixel (x, y), compute:
+         r1 = distance to S1
+         r2 = distance to S2
+         I(x,y) = 2 + 2 * cos(k * (r1 - r2))
+
+     This is  |e^{ikr1} + e^{ikr2}|^2  for unit-amplitude waves.
+
+  4. Normalise to [0, 255].
+
+
+3. MATHEMATICAL BACKGROUND
+---------------------------
+Symmetry:  D2  (two perpendicular mirror axes)
+
+The path-length difference  delta = r1 - r2  determines the fringe
+pattern.  Constructive interference (bright) occurs when:
+    delta = m * lambda     (m integer,  lambda = 2*pi/k)
+
+Destructive interference (dark) when:
+    delta = (m + 1/2) * lambda
+
+The locus of constant  delta  is a hyperbola with foci at S1 and S2.
+The fringe pattern is therefore a family of confocal hyperbolas.
+
+Far from the sources (Fraunhofer regime), the fringes become equally-
+spaced parallel lines with spacing:
+    fringe_spacing = lambda * L / d
+
+where L is the distance to the observation plane and d is the slit
+separation.  Our computation uses the exact near-field (Fresnel)
+formula, which shows curved fringes near the sources.
+
+This is the setup of Young's double-slit experiment (1801), which
+first demonstrated the wave nature of light.
+
+Parameter space:  (d, k) — a 2-D continuous space.  The product k*d
+determines the fringe density; the ratio d/size controls the
+curvature of the hyperbolic fringes.
