@@ -1,12 +1,61 @@
 # Local Setup Guide
 
-## Prerequisites
+## Quick Start (Docker — recommended)
+
+Only requirement on the server: **Docker** (and **Docker Compose**).
+
+```bash
+git clone <repo-url>
+cd activation-space-projections
+
+# Run experiment 1 — builds the image automatically on first run
+./run.sh --experiment 1
+
+# Or equivalently:
+docker compose run --rm experiment --experiment 1
+```
+
+That's it. No Python, no pip, no virtual environments.
+
+### More examples
+
+```bash
+# Custom parameters
+./run.sh --experiment 5 --epochs 100 --latent-dim 128
+
+# All 45 experiments
+for i in $(seq 1 45); do ./run.sh --experiment $i; done
+
+# Re-generate visualizations from saved data
+./run.sh --visualize --experiment 1
+```
+
+### GPU support
+
+If the server has an NVIDIA GPU, install
+[nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html),
+then uncomment the `gpu-experiment` service in `docker-compose.yml` and run:
+
+```bash
+docker compose run --rm gpu-experiment --experiment 1
+```
+
+### Outputs
+
+Results are written to the `outputs/` directory on the host (mounted as
+a Docker volume), so they persist across runs.
+
+---
+
+## Manual Setup (without Docker)
+
+### Prerequisites
 
 - **Python 3.10** (the version the notebooks were developed on)
 - **pip** (Python package manager)
 - **(Optional) NVIDIA GPU** with CUDA drivers for accelerated training. The code falls back to CPU automatically if no GPU is available.
 
-## Installation
+### Installation
 
 ```bash
 # 1. Clone the repository
@@ -22,7 +71,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### PyTorch with GPU (CUDA) support
+#### PyTorch with GPU (CUDA) support
 
 The `requirements.txt` installs the default (CPU) PyTorch build. If the server has an NVIDIA GPU, install the CUDA-enabled build instead:
 
@@ -31,9 +80,9 @@ The `requirements.txt` installs the default (CPU) PyTorch build. If the server h
 pip install torch --index-url https://download.pytorch.org/whl/cu118
 ```
 
-## Running Experiments
+### Running Experiments
 
-### Option A: Command-line scripts (recommended for servers)
+#### Option A: Command-line scripts (recommended for servers)
 
 No Jupyter needed. Run everything from the terminal:
 
@@ -83,7 +132,7 @@ Full CLI flags for `run_experiment.py`:
 | `--no-umap` | off | Skip UMAP (faster) |
 | `--seed` | none | Random seed |
 
-### Option B: Jupyter notebooks
+#### Option B: Jupyter notebooks
 
 ```bash
 jupyter notebook
@@ -94,7 +143,7 @@ Then open:
 1. **`experiment_runner.ipynb`** — runs a single experiment interactively.
 2. **`visualize_results.ipynb`** — loads saved results and renders interactive Plotly visualizations.
 
-### Note on Colab-specific code
+#### Note on Colab-specific code
 
 `curves.py` contains a `google.colab.output` import. This is wrapped in a try/except and will be silently skipped when running locally — no action needed.
 
@@ -115,9 +164,13 @@ Each experiment writes to `outputs/experiment_<ID>/`:
 
 ```
 activation-space-projections/
+├── Dockerfile                   # Docker image (CPU by default, GPU via build arg)
+├── docker-compose.yml           # docker compose services
+├── .dockerignore
+├── run.sh                       # Convenience wrapper: ./run.sh --experiment 1
 ├── requirements.txt             # Python dependencies
 ├── LOCAL_SETUP.md               # This file
-├── run_experiment.py            # CLI script — train & project (replaces notebook)
+├── run_experiment.py            # CLI script — train & project
 ├── visualize.py                 # CLI script — regenerate HTML plots
 ├── plotting.py                  # Shared Plotly 3D figure builder
 ├── experiment_runner.ipynb      # Original Colab notebook

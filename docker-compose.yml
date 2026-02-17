@@ -1,0 +1,36 @@
+services:
+  # ---- CPU (default) ----
+  experiment:
+    build:
+      context: .
+      args:
+        DEVICE: cpu
+    volumes:
+      - ./outputs:/workspace/outputs
+    entrypoint: ["python", "run_experiment.py"]
+
+  visualize:
+    build:
+      context: .
+      args:
+        DEVICE: cpu
+    volumes:
+      - ./outputs:/workspace/outputs
+    entrypoint: ["python", "visualize.py"]
+
+  # ---- GPU (uncomment and use: docker compose run --rm gpu-experiment ...) ----
+  # gpu-experiment:
+  #   build:
+  #     context: .
+  #     args:
+  #       DEVICE: gpu
+  #   volumes:
+  #     - ./outputs:/workspace/outputs
+  #   entrypoint: ["python", "run_experiment.py"]
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
