@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#17 Symmetric Dot Clouds — Activation Space Projections</title>
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<main class="container">
+  <a class="back" href="../../">&larr; All experiments</a>
+  <div class="detail-header">
+    <h1>#17 &mdash; Symmetric Dot Clouds</h1>
+    <p class="desc"> Random dots are placed inside a fundamental wedge and then replicated by the full dihedral group D_n (rotations + reflections), producing a symmetric scatter of filled circles.</p>
+  </div>
+
+  <div class="section">
+    <h2>Interactive 3D Visualizations</h2>
+    <div class="viz-links">
+      <a class="viz-btn" href="pca.html"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="3" cy="13" r="1.5"/><circle cx="6" cy="8" r="1.5"/><circle cx="10" cy="10" r="1.5"/><circle cx="13" cy="4" r="1.5"/></svg>PCA 3D Projection</a><a class="viz-btn" href="umap.html"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="4" cy="5" r="1.5"/><circle cx="7" cy="12" r="1.5"/><circle cx="12" cy="7" r="1.5"/><circle cx="9" cy="3" r="1.5"/></svg>UMAP 3D Projection</a>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Training Results</h2>
+    <div class="image-row">
+      <figure><img src="samples.png" alt="Dataset samples"><figcaption>Dataset samples</figcaption></figure>
+      <figure><img src="loss_curve.png" alt="Training / validation loss"><figcaption>Training / validation loss</figcaption></figure>
+      <figure><img src="reconstructions.png" alt="Reconstructions (top: original, bottom: decoded)"><figcaption>Reconstructions (top: original, bottom: decoded)</figcaption></figure>
+    </div>
+  </div>
+</main>
+</body>
+</html>
