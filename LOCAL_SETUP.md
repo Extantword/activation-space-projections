@@ -61,6 +61,22 @@ To revert from GPU to CPU later:
 rm docker-compose.override.yml && docker compose build
 ```
 
+### GitHub Pages site
+
+After running experiments, build a static site to browse results:
+
+```bash
+./run.sh --site
+```
+
+This generates `docs/` with an index page, thumbnails, and links to the
+interactive Plotly 3D plots. Configure GitHub Pages to serve from the
+`docs/` folder on your branch, then commit and push:
+
+```bash
+git add docs/ && git commit -m "Update site" && git push
+```
+
 ### Outputs
 
 Results are written to the `outputs/` directory on the host (mounted as
@@ -187,6 +203,7 @@ Each experiment writes to `outputs/experiment_<ID>/`:
 activation-space-projections/
 ├── setup.sh                     # One-time setup: detects GPU, builds Docker image
 ├── run.sh                       # Run experiments: N_EXPERIMENT=1 ./run.sh
+├── build_site.py                # Generate GitHub Pages site from outputs
 ├── Dockerfile                   # Docker image (CPU by default, GPU via build arg)
 ├── docker-compose.yml           # docker compose services
 ├── .dockerignore
@@ -198,6 +215,7 @@ activation-space-projections/
 ├── experiment_runner.ipynb      # Original Colab notebook
 ├── visualize_results.ipynb      # Original Colab notebook
 ├── curves.py                    # Shared utilities (used by notebooks)
+├── docs/                        # Generated GitHub Pages site (./run.sh --site)
 └── Experiments/
     ├── 1/datasets.py            # Dataset generator for experiment 1
     ├── 2/datasets.py

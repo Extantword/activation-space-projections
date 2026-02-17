@@ -17,6 +17,16 @@ services:
       - ./outputs:/workspace/outputs
     entrypoint: ["python", "visualize.py"]
 
+  build-site:
+    build:
+      context: .
+      args:
+        DEVICE: cpu
+    volumes:
+      - ./outputs:/workspace/outputs
+      - ./docs:/workspace/docs
+    entrypoint: ["python", "build_site.py"]
+
 # GPU support is activated automatically by setup.sh, which writes
 # a docker-compose.override.yml that switches DEVICE to gpu and
 # reserves the NVIDIA device.  To revert to CPU:
