@@ -1,5 +1,4 @@
 services:
-  # ---- CPU (default) ----
   experiment:
     build:
       context: .
@@ -18,19 +17,7 @@ services:
       - ./outputs:/workspace/outputs
     entrypoint: ["python", "visualize.py"]
 
-  # ---- GPU (uncomment and use: docker compose run --rm gpu-experiment ...) ----
-  # gpu-experiment:
-  #   build:
-  #     context: .
-  #     args:
-  #       DEVICE: gpu
-  #   volumes:
-  #     - ./outputs:/workspace/outputs
-  #   entrypoint: ["python", "run_experiment.py"]
-  #   deploy:
-  #     resources:
-  #       reservations:
-  #         devices:
-  #           - driver: nvidia
-  #             count: 1
-  #             capabilities: [gpu]
+# GPU support is activated automatically by setup.sh, which writes
+# a docker-compose.override.yml that switches DEVICE to gpu and
+# reserves the NVIDIA device.  To revert to CPU:
+#   rm docker-compose.override.yml && docker compose build

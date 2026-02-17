@@ -1,19 +1,51 @@
 #!/usr/bin/env bash
-# Convenience wrapper — runs an experiment inside Docker.
+# =============================================================
+# run.sh — Run experiments or visualizations inside Docker.
 #
-# Usage:
-#   ./run.sh --experiment 1
-#   ./run.sh --experiment 5 --epochs 100 --no-umap
-#   ./run.sh --help
+# Configure via environment variables:
+#   N_EXPERIMENT  (required)  Experiment ID (1–45)
+#   N_EPOCHS                  Number of training epochs
+#   LATENT_DIM                Autoencoder bottleneck dimension
+#   IMAGE_SIZE                Image resolution
 #
-# To re-generate visualizations:
-#   ./run.sh --visualize --experiment 1
-
+# Examples:
+#   N_EXPERIMENT=1 ./run.sh
+#   N_EXPERIMENT=5 N_EPOCHS=100 LATENT_DIM=128 IMAGE_SIZE=64 ./run.sh
+#
+#   # Re-generate visualizations
+#   N_EXPERIMENT=1 ./run.sh --visualize
+#
+#   # Pass extra flags directly
+#   N_EXPERIMENT=1 ./run.sh --no-umap --seed 42
+# =============================================================
 set -euo pipefail
 
-if [[ "${1:-}" == "--visualize" ]]; then
-    shift
-    exec docker compose run --rm visualize "$@"
+# ── Parse mode ───────────────────────────────────────────────
+SERVICE=experiment
+EXTRA=()
+
+for arg in "$@"; do
+    case "$arg" in
+        --visualize) SERVICE=visualize ;;
+        *)           EXTRA+=("$arg") ;;
+    esac
+done
+
+# ── Build CLI args from env vars ─────────────────────────────
+ARGS=()
+
+if [[ -z "${N_EXPERIMENT:-}" ]]; then
+    echo "ERROR: N_EXPERIMENT is required."
+    echo "Usage: N_EXPERIMENT=1 ./run.sh"
+    exit 1
+fi
+ARGS+=(--experiment "$N_EXPERIMENT")
+
+if [[ "$SERVICE" == "experiment" ]]; then
+    [[ -n "${N_EPOCHS:-}" ]]   && ARGS+=(--epochs "$N_EPOCHS")
+    [[ -n "${LATENT_DIM:-}" ]] && ARGS+=(--latent-dim "$LATENT_DIM")
+    [[ -n "${IMAGE_SIZE:-}" ]] && ARGS+=(--image-size "$IMAGE_SIZE")
 fi
 
-exec docker compose run --rm experiment "$@"
+# ── Run ──────────────────────────────────────────────────────
+exec docker compose run --rm "$SERVICE" "${ARGS[@]}" "${EXTRA[@]}"

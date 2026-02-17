@@ -8,36 +8,57 @@ Only requirement on the server: **Docker** (and **Docker Compose**).
 git clone <repo-url>
 cd activation-space-projections
 
-# Run experiment 1 — builds the image automatically on first run
-./run.sh --experiment 1
+# 1. One-time setup — detects GPU, builds the Docker image
+./setup.sh
 
-# Or equivalently:
-docker compose run --rm experiment --experiment 1
+# 2. Run an experiment
+N_EXPERIMENT=1 ./run.sh
 ```
 
 That's it. No Python, no pip, no virtual environments.
 
-### More examples
+### Environment variables
+
+Configure experiments with these env vars:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `N_EXPERIMENT` | yes | Experiment ID (1–45) |
+| `N_EPOCHS` | no | Number of training epochs (default 50) |
+| `LATENT_DIM` | no | Autoencoder bottleneck dimension (default 64) |
+| `IMAGE_SIZE` | no | Image resolution (default 64) |
 
 ```bash
 # Custom parameters
-./run.sh --experiment 5 --epochs 100 --latent-dim 128
+N_EXPERIMENT=5 N_EPOCHS=100 LATENT_DIM=128 IMAGE_SIZE=64 ./run.sh
 
 # All 45 experiments
-for i in $(seq 1 45); do ./run.sh --experiment $i; done
+for i in $(seq 1 45); do N_EXPERIMENT=$i ./run.sh; done
 
 # Re-generate visualizations from saved data
-./run.sh --visualize --experiment 1
+N_EXPERIMENT=1 ./run.sh --visualize
+
+# Extra flags are passed through directly
+N_EXPERIMENT=1 ./run.sh --no-umap --seed 42
 ```
 
 ### GPU support
 
-If the server has an NVIDIA GPU, install
-[nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html),
-then uncomment the `gpu-experiment` service in `docker-compose.yml` and run:
+`./setup.sh` auto-detects NVIDIA GPUs. If one is found and
+[nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+is installed, the image is built with CUDA support automatically.
+
+To force CPU or GPU mode:
 
 ```bash
-docker compose run --rm gpu-experiment --experiment 1
+./setup.sh --cpu    # force CPU even if GPU is present
+./setup.sh --gpu    # force GPU
+```
+
+To revert from GPU to CPU later:
+
+```bash
+rm docker-compose.override.yml && docker compose build
 ```
 
 ### Outputs
@@ -164,10 +185,11 @@ Each experiment writes to `outputs/experiment_<ID>/`:
 
 ```
 activation-space-projections/
+├── setup.sh                     # One-time setup: detects GPU, builds Docker image
+├── run.sh                       # Run experiments: N_EXPERIMENT=1 ./run.sh
 ├── Dockerfile                   # Docker image (CPU by default, GPU via build arg)
 ├── docker-compose.yml           # docker compose services
 ├── .dockerignore
-├── run.sh                       # Convenience wrapper: ./run.sh --experiment 1
 ├── requirements.txt             # Python dependencies
 ├── LOCAL_SETUP.md               # This file
 ├── run_experiment.py            # CLI script — train & project
