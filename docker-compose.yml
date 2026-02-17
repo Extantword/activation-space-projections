@@ -1,0 +1,23 @@
+services:
+  experiment:
+    build:
+      context: .
+      args:
+        DEVICE: cpu
+    volumes:
+      - ./outputs:/workspace/outputs
+    entrypoint: ["python", "run_experiment.py"]
+
+  visualize:
+    build:
+      context: .
+      args:
+        DEVICE: cpu
+    volumes:
+      - ./outputs:/workspace/outputs
+    entrypoint: ["python", "visualize.py"]
+
+# GPU support is activated automatically by setup.sh, which writes
+# a docker-compose.override.yml that switches DEVICE to gpu and
+# reserves the NVIDIA device.  To revert to CPU:
+#   rm docker-compose.override.yml && docker compose build
