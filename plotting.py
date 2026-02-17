@@ -65,17 +65,31 @@ def build_3d_figure(coords_3d, all_imgs, method_name, axis_labels,
     )
 
     div_id = f'plot3d_{method_name.lower().replace(" ", "_")}'
-    plot_html = fig.to_html(include_plotlyjs='cdn', div_id=div_id)
-    full_html = f"""
+    func_id = div_id.replace('-', '_')
+    plot_div = fig.to_html(include_plotlyjs='cdn', div_id=div_id,
+                           full_html=False)
+    full_html = f"""\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D {method_name} — Activation Space Projections</title>
+<style>
+  body {{ margin: 0; background: #0d1117; color: #e6edf3;
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }}
+</style>
+</head>
+<body>
 <div id="container_{div_id}">
-    {plot_html}
+    {plot_div}
     <div id="imgdiv_{div_id}" style="margin-top:20px;text-align:center;min-height:200px;">
         <p style="color:#666">Hover over a point to see its image.</p>
     </div>
 </div>
 <script>
 var p = document.getElementById('{div_id}');
-function showImg_{div_id.replace('-','_')}(data) {{
+function showImg_{func_id}(data) {{
     var pt = data.points[0];
     var cd = pt.customdata;
     document.getElementById('imgdiv_{div_id}').innerHTML =
@@ -87,8 +101,10 @@ function showImg_{div_id.replace('-','_')}(data) {{
         '{axis_labels[1]}: ' + Number(cd[1]).toFixed(4) + '  |  ' +
         '{axis_labels[2]}: ' + Number(cd[2]).toFixed(4) + '</div></div>';
 }}
-p.on('plotly_hover',  showImg_{div_id.replace('-','_')});
-p.on('plotly_click',  showImg_{div_id.replace('-','_')});
+p.on('plotly_hover',  showImg_{func_id});
+p.on('plotly_click',  showImg_{func_id});
 </script>
+</body>
+</html>
 """
     return fig, full_html
