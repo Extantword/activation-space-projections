@@ -477,7 +477,7 @@ print("\n🔄 Converting images to base64...")
 def img_to_base64(img_array):
     img_uint8 = (img_array * 255).astype(np.uint8)
     img_pil = Image.fromarray(img_uint8.reshape(64, 64))
-    img_pil = img_pil.resize((128, 128), Image.LANCZOS)
+    img_pil = img_pil.resize((200, 200), Image.LANCZOS)
     buffer = io.BytesIO()
     img_pil.save(buffer, format='PNG')
     buffer.seek(0)
@@ -555,22 +555,27 @@ fig.update_layout(
 plot_html = fig.to_html(include_plotlyjs='cdn', div_id='myplot3d')
 
 custom_html = f"""
-<div id="container">
-    {plot_html}
+<div id="main-container" style="display:flex;align-items:flex-start;gap:20px;max-width:1400px;margin:0 auto;">
+    <div id="plot-container" style="flex:1;min-width:0;">
+        {plot_html}
+    </div>
 
-    <div id="image-display" style="margin-top: 20px; text-align: center; min-height: 200px;">
-        <p style="color: #666; font-size: 16px;">
-            🎨 <b>Rotate:</b> Click and drag |
-            🔍 <b>Zoom:</b> Scroll |
-            👆 <b>Hover over any point to see its curve!</b>
-        </p>
+    <div id="image-display" style="width:350px;min-height:700px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <div style="text-align:center;color:#666;font-size:16px;padding:20px;">
+            <p style="margin:0;">
+                🎨 <b>Rotate:</b> Click and drag<br>
+                🔍 <b>Zoom:</b> Scroll<br>
+                👆 <b>Hover over any point</b><br>
+                to see the curve here!
+            </p>
+        </div>
     </div>
 </div>
 
 <script>
     var plot = document.getElementById('myplot3d');
 
-    plot.on('plotly_hover', function(data) {{
+    function showImage3dPca(data) {{
         var point = data.points[0];
         if (point.x === null || point.x === undefined) return;
 
@@ -583,11 +588,11 @@ custom_html = f"""
 
         var displayDiv = document.getElementById('image-display');
         displayDiv.innerHTML = `
-            <div style="display: inline-block; padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
-                <div style="background: white; padding: 20px; border-radius: 10px;">
-                    <h2 style="margin: 0 0 15px 0; color: #333; font-size: 28px;">Sample #${{pointNum}}</h2>
-                    <img src="${{imgSrc}}" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-                    <div style="margin-top: 15px; color: #666; font-size: 14px; line-height: 1.6;">
+            <div style="padding:25px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:15px;box-shadow:0 8px 20px rgba(0,0,0,0.2);">
+                <div style="background:white;padding:20px;border-radius:10px;">
+                    <h2 style="margin:0 0 15px 0;color:#333;font-size:24px;">Sample #${{pointNum}}</h2>
+                    <img src="${{imgSrc}}" width="200" height="200" style="border:3px solid #667eea;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,0.1);display:block;">
+                    <div style="margin-top:15px;color:#666;font-size:14px;line-height:1.8;">
                         <div>📍 <b>PC1:</b> ${{pc1}} ({pca.explained_variance_ratio_[0]:.1%} var)</div>
                         <div>📍 <b>PC2:</b> ${{pc2}} ({pca.explained_variance_ratio_[1]:.1%} var)</div>
                         <div>📍 <b>PC3:</b> ${{pc3}} ({pca.explained_variance_ratio_[2]:.1%} var)</div>
@@ -595,40 +600,20 @@ custom_html = f"""
                 </div>
             </div>
         `;
-    }});
+    }}
 
-    plot.on('plotly_click', function(data) {{
-        var point = data.points[0];
-        if (point.x === null || point.x === undefined) return;
-
-        var customdata = point.customdata;
-        var pc1 = customdata[0].toFixed(4);
-        var pc2 = customdata[1].toFixed(4);
-        var pc3 = customdata[2].toFixed(4);
-        var imgSrc = customdata[3];
-        var pointNum = point.pointNumber;
-
-        var displayDiv = document.getElementById('image-display');
-        displayDiv.innerHTML = `
-            <div style="display: inline-block; padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
-                <div style="background: white; padding: 20px; border-radius: 10px;">
-                    <h2 style="margin: 0 0 15px 0; color: #333; font-size: 28px;">Sample #${{pointNum}}</h2>
-                    <img src="${{imgSrc}}" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-                    <div style="margin-top: 15px; color: #666; font-size: 14px; line-height: 1.6;">
-                        <div>📍 <b>PC1:</b> ${{pc1}} ({pca.explained_variance_ratio_[0]:.1%} var)</div>
-                        <div>📍 <b>PC2:</b> ${{pc2}} ({pca.explained_variance_ratio_[1]:.1%} var)</div>
-                        <div>📍 <b>PC3:</b> ${{pc3}} ({pca.explained_variance_ratio_[2]:.1%} var)</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }});
+    plot.on('plotly_hover', showImage3dPca);
+    plot.on('plotly_click', showImage3dPca);
 </script>
 
 <style>
     #myplot3d {{
         border-radius: 10px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }}
+    #main-container {{
+        max-width: 1400px;
+        margin: 0 auto;
     }}
 </style>
 """
@@ -814,7 +799,7 @@ custom_html = f"""
             <div style="padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
                 <div style="background: white; padding: 20px; border-radius: 10px;">
                     <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">Sample #${{pointNum}}</h2>
-                    <img src="${{imgSrc}}" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
+                    <img src="${{imgSrc}}" width="200" height="200" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
                     <div style="margin-top: 15px; color: #666; font-size: 14px; line-height: 1.8;">
                         <div>📍 <b>PC1:</b> ${{pc1}}</div>
                         <div style="font-size: 11px; color: #999; margin-left: 20px;">
@@ -845,7 +830,7 @@ custom_html = f"""
             <div style="padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
                 <div style="background: white; padding: 20px; border-radius: 10px;">
                     <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">Sample #${{pointNum}}</h2>
-                    <img src="${{imgSrc}}" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
+                    <img src="${{imgSrc}}" width="200" height="200" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
                     <div style="margin-top: 15px; color: #666; font-size: 14px; line-height: 1.8;">
                         <div>📍 <b>PC1:</b> ${{pc1}}</div>
                         <div style="font-size: 11px; color: #999; margin-left: 20px;">
@@ -1069,7 +1054,7 @@ custom_html = f"""
             <div style="padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
                 <div style="background: white; padding: 20px; border-radius: 10px;">
                     <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">Sample #${{pointNum}}</h2>
-                    <img src="${{imgSrc}}" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
+                    <img src="${{imgSrc}}" width="200" height="200" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
                     <div style="margin-top: 15px; color: #666; font-size: 14px; line-height: 1.8;">
                         <div>📍 <b>UMAP1:</b> ${{u1}}</div>
                         <div>📍 <b>UMAP2:</b> ${{u2}}</div>
@@ -1096,7 +1081,7 @@ custom_html = f"""
             <div style="padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
                 <div style="background: white; padding: 20px; border-radius: 10px;">
                     <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">Sample #${{pointNum}}</h2>
-                    <img src="${{imgSrc}}" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
+                    <img src="${{imgSrc}}" width="200" height="200" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
                     <div style="margin-top: 15px; color: #666; font-size: 14px; line-height: 1.8;">
                         <div>📍 <b>UMAP1:</b> ${{u1}}</div>
                         <div>📍 <b>UMAP2:</b> ${{u2}}</div>
@@ -1681,7 +1666,7 @@ custom_html = f"""
             <div style="padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
                 <div style="background: white; padding: 20px; border-radius: 10px;">
                     <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">Sample #${{pointNum}}</h2>
-                    <img src="${{imgSrc}}" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
+                    <img src="${{imgSrc}}" width="200" height="200" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
                     <div style="margin-top: 15px; color: #666; font-size: 14px; line-height: 1.8;">
                         <div>📍 <b>UMAP1:</b> ${{u1}}</div>
                         <div>📍 <b>UMAP2:</b> ${{u2}}</div>
@@ -1708,7 +1693,7 @@ custom_html = f"""
             <div style="padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
                 <div style="background: white; padding: 20px; border-radius: 10px;">
                     <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">Sample #${{pointNum}}</h2>
-                    <img src="${{imgSrc}}" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
+                    <img src="${{imgSrc}}" width="200" height="200" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
                     <div style="margin-top: 15px; color: #666; font-size: 14px; line-height: 1.8;">
                         <div>📍 <b>UMAP1:</b> ${{u1}}</div>
                         <div>📍 <b>UMAP2:</b> ${{u2}}</div>
@@ -2309,7 +2294,7 @@ custom_html = f"""
             <div style="padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
                 <div style="background: white; padding: 20px; border-radius: 10px;">
                     <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">Sample #${{pointNum}}</h2>
-                    <img src="${{imgSrc}}" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
+                    <img src="${{imgSrc}}" width="200" height="200" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
                     <div style="margin-top: 15px; color: #666; font-size: 14px; line-height: 1.8;">
                         <div>📍 <b>UMAP1:</b> ${{u1}}</div>
                         <div>📍 <b>UMAP2:</b> ${{u2}}</div>
@@ -2336,7 +2321,7 @@ custom_html = f"""
             <div style="padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
                 <div style="background: white; padding: 20px; border-radius: 10px;">
                     <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">Sample #${{pointNum}}</h2>
-                    <img src="${{imgSrc}}" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
+                    <img src="${{imgSrc}}" width="200" height="200" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
                     <div style="margin-top: 15px; color: #666; font-size: 14px; line-height: 1.8;">
                         <div>📍 <b>UMAP1:</b> ${{u1}}</div>
                         <div>📍 <b>UMAP2:</b> ${{u2}}</div>
@@ -3155,7 +3140,7 @@ def UMAP_visualization(model, N_NEW_SAMPLES = 20000, n_neighbors = 50, min_dist 
               <div style="padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
                   <div style="background: white; padding: 20px; border-radius: 10px;">
                       <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">Sample #${{pointNum}}</h2>
-                      <img src="${{imgSrc}}" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
+                      <img src="${{imgSrc}}" width="200" height="200" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
                       <div style="margin-top: 15px; color: #666; font-size: 14px; line-height: 1.8;">
                           <div>📍 <b>UMAP1:</b> ${{u1}}</div>
                           <div>📍 <b>UMAP2:</b> ${{u2}}</div>
@@ -3182,7 +3167,7 @@ def UMAP_visualization(model, N_NEW_SAMPLES = 20000, n_neighbors = 50, min_dist 
               <div style="padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);">
                   <div style="background: white; padding: 20px; border-radius: 10px;">
                       <h2 style="margin: 0 0 15px 0; color: #333; font-size: 24px;">Sample #${{pointNum}}</h2>
-                      <img src="${{imgSrc}}" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
+                      <img src="${{imgSrc}}" width="200" height="200" style="border: 3px solid #667eea; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: block;">
                       <div style="margin-top: 15px; color: #666; font-size: 14px; line-height: 1.8;">
                           <div>📍 <b>UMAP1:</b> ${{u1}}</div>
                           <div>📍 <b>UMAP2:</b> ${{u2}}</div>

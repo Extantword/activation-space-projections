@@ -17,7 +17,7 @@ def build_3d_figure(coords_3d, all_imgs, method_name, axis_labels,
 
     def _to_b64(arr):
         img = Image.fromarray((arr.reshape(img_size, img_size) * 255).astype(np.uint8))
-        img = img.resize((128, 128), Image.LANCZOS)
+        img = img.resize((200, 200), Image.LANCZOS)
         buf = io.BytesIO()
         img.save(buf, format='PNG')
         return 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode()
@@ -65,30 +65,46 @@ def build_3d_figure(coords_3d, all_imgs, method_name, axis_labels,
     )
 
     div_id = f'plot3d_{method_name.lower().replace(" ", "_")}'
-    plot_html = fig.to_html(include_plotlyjs='cdn', div_id=div_id)
-    full_html = f"""
-<div id="container_{div_id}">
-    {plot_html}
-    <div id="imgdiv_{div_id}" style="margin-top:20px;text-align:center;min-height:200px;">
-        <p style="color:#666">Hover over a point to see its image.</p>
+    func_id = div_id.replace('-', '_')
+    plot_div = fig.to_html(include_plotlyjs='cdn', div_id=div_id,
+                           full_html=False)
+    full_html = f"""\
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D {method_name} — Activation Space Projections</title>
+<style>
+  body {{ margin: 0; background: #0d1117; color: #e6edf3;
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }}
+</style>
+</head>
+<body>
+<div id="container_{div_id}" style="display:flex;align-items:flex-start;gap:24px;padding:10px;">
+    <div style="flex:1;min-width:0;">{plot_div}</div>
+    <div id="imgdiv_{div_id}" style="width:280px;min-height:300px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <p style="color:#666;text-align:center;">Hover over a point to see its image.</p>
     </div>
 </div>
 <script>
 var p = document.getElementById('{div_id}');
-function showImg_{div_id.replace('-','_')}(data) {{
+function showImg_{func_id}(data) {{
     var pt = data.points[0];
     var cd = pt.customdata;
     document.getElementById('imgdiv_{div_id}').innerHTML =
-        '<div style="display:inline-block;padding:20px;background:#f0f0f0;border-radius:12px;">' +
-        '<h3>Sample #' + pt.pointNumber + '</h3>' +
-        '<img src="' + cd[3] + '" style="border:2px solid #444;border-radius:6px;">' +
-        '<div style="margin-top:8px;font-size:13px;">' +
-        '{axis_labels[0]}: ' + Number(cd[0]).toFixed(4) + '  |  ' +
-        '{axis_labels[1]}: ' + Number(cd[1]).toFixed(4) + '  |  ' +
+        '<div style="padding:20px;background:#f0f0f0;border-radius:12px;text-align:center;">' +
+        '<h3 style="margin:0 0 10px 0;color:#333;">Sample #' + pt.pointNumber + '</h3>' +
+        '<img src="' + cd[3] + '" width="200" height="200" style="border:2px solid #444;border-radius:6px;display:block;margin:0 auto;">' +
+        '<div style="margin-top:10px;font-size:12px;color:#555;line-height:1.6;">' +
+        '{axis_labels[0]}: ' + Number(cd[0]).toFixed(4) + '<br>' +
+        '{axis_labels[1]}: ' + Number(cd[1]).toFixed(4) + '<br>' +
         '{axis_labels[2]}: ' + Number(cd[2]).toFixed(4) + '</div></div>';
 }}
-p.on('plotly_hover',  showImg_{div_id.replace('-','_')});
-p.on('plotly_click',  showImg_{div_id.replace('-','_')});
+p.on('plotly_hover',  showImg_{func_id});
+p.on('plotly_click',  showImg_{func_id});
 </script>
+</body>
+</html>
 """
     return fig, full_html
