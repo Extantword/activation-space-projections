@@ -81,8 +81,8 @@ def build_3d_figure(coords_3d, all_imgs, method_name, axis_labels,
 </style>
 </head>
 <body>
-<div id="container_{div_id}" style="display:flex;align-items:flex-start;gap:24px;padding:10px;">
-    <div style="flex:1;min-width:0;">{plot_div}</div>
+<div id="container_{div_id}" style="display:flex;align-items:center;justify-content:center;gap:24px;padding:10px;">
+    <div>{plot_div}</div>
     <div id="imgdiv_{div_id}" style="width:280px;min-height:300px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
         <p style="color:#666;text-align:center;">Hover over a point to see its image.</p>
     </div>
