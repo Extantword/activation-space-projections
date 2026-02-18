@@ -65,12 +65,14 @@ def get_experiment_meta(exp_id: int) -> dict:
                 description = pm.group(2).strip()
             else:
                 name = raw
-        # Try second line for extra description
+        # Try remaining comment lines for extra description
         lines = ds_path.read_text().split("\n")
         desc_lines = []
         for line in lines[1:]:
             if line.startswith("#"):
-                desc_lines.append(line.lstrip("# ").strip())
+                part = line.lstrip("#").strip()
+                if part:
+                    desc_lines.append(part)
             else:
                 break
         if desc_lines:
@@ -300,20 +302,21 @@ def index_html(experiments: list[dict]) -> str:
             badges.append(f'<a class="badge" href="experiment/{exp_id}/">Details</a>')
             links = f'<div class="links">{"".join(badges)}</div>'
 
-        desc_html = f'<div class="desc">{e["description"]}</div>' if e["description"] else ""
+        desc_html = f'\n        <div class="desc">{e["description"]}</div>' if e["description"] else ""
+        links_html = f'\n        {links}' if links else ""
 
         href = f'experiment/{exp_id}/' if e["completed"] else '#'
-        cards.append(f"""\
-    <a href="{href}" style="text-decoration:none;color:inherit">
-    <div class="card{cls}">
-      {img}
-      <div class="card-body">
-        <h3><span class="id">#{exp_id}</span> {e["name"]}</h3>
-        {desc_html}
-        {links}
-      </div>
-    </div>
-    </a>""")
+        cards.append(
+            f'    <a href="{href}" style="text-decoration:none;color:inherit">\n'
+            f'    <div class="card{cls}">\n'
+            f'      {img}\n'
+            f'      <div class="card-body">\n'
+            f'        <h3><span class="id">#{exp_id}</span> {e["name"]}</h3>'
+            f'{desc_html}{links_html}\n'
+            f'      </div>\n'
+            f'    </div>\n'
+            f'    </a>'
+        )
 
     return f"""\
 <!DOCTYPE html>
