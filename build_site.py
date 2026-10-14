@@ -162,15 +162,14 @@ def copy_experiment_assets(meta: dict, dest: Path):
 def css() -> str:
     return """\
 :root {
-  --bg: #0d1117;
-  --surface: #161b22;
-  --border: #30363d;
+  color-scheme: dark;
+  --bg: #000;
+  --surface: #000;
+  --border: #262626;
   --text: #e6edf3;
   --text-muted: #8b949e;
   --accent: #58a6ff;
   --accent-hover: #79c0ff;
-  --success: #3fb950;
-  --pending: #8b949e;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 15px; }
@@ -190,14 +189,7 @@ a:hover { color: var(--accent-hover); text-decoration: underline; }
 }
 .site-header h1 { font-size: 1.8rem; font-weight: 600; }
 .site-header p { color: var(--text-muted); margin-top: 0.4rem; font-size: 0.95rem; }
-.stats {
-  display: flex; justify-content: center; gap: 2rem;
-  margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);
-}
-.stats span { display: flex; align-items: center; gap: 0.3rem; }
-.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.dot-done { background: var(--success); }
-.dot-pending { background: var(--pending); }
+.stats { margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); }
 
 /* ── Grid ── */
 .container { max-width: 1280px; margin: 0 auto; padding: 1.5rem; }
@@ -214,7 +206,6 @@ a:hover { color: var(--accent-hover); text-decoration: underline; }
   transition: border-color 0.15s, transform 0.15s;
 }
 .card:hover { border-color: var(--accent); transform: translateY(-2px); }
-.card.pending { opacity: 0.45; pointer-events: none; }
 .card-img {
   width: 100%; aspect-ratio: 1; object-fit: cover;
   background: #000; display: block;
@@ -225,6 +216,8 @@ a:hover { color: var(--accent-hover); text-decoration: underline; }
   background: #000; color: var(--text-muted); font-size: 0.8rem;
 }
 .card-body { padding: 0.75rem 1rem; }
+.card-main, .card-main:hover { display: block; color: inherit; text-decoration: none; }
+.card-links { padding-top: 0; }
 .card-body h3 {
   font-size: 0.95rem; font-weight: 600;
   display: flex; align-items: center; gap: 0.5rem;
@@ -232,7 +225,7 @@ a:hover { color: var(--accent-hover); text-decoration: underline; }
 .card-body h3 .id { color: var(--text-muted); font-weight: 400; font-size: 0.85rem; }
 .card-body .desc { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
 .card-body .links {
-  display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;
+  display: flex; gap: 0.5rem; flex-wrap: wrap;
 }
 .badge {
   font-size: 0.7rem; padding: 0.2rem 0.5rem;
@@ -277,45 +270,43 @@ a:hover { color: var(--accent-hover); text-decoration: underline; }
 
 
 def index_html(experiments: list[dict]) -> str:
-    n_done = sum(1 for e in experiments if e["completed"])
-    n_total = len(experiments)
+    # Only completed experiments get a card.
+    experiments = [e for e in experiments if e["completed"]]
 
     cards = []
     for e in experiments:
         exp_id = e["id"]
-        cls = "" if e["completed"] else " pending"
 
-        if e["completed"] and e["has_samples"]:
+        if e["has_samples"]:
             img = f'<img class="card-img" src="experiment/{exp_id}/samples.png" alt="{e["name"]}" loading="lazy">'
         elif e["has_preview"]:
             img = f'<img class="card-img" src="experiment/{exp_id}/preview.png" alt="{e["name"]}" loading="lazy">'
         else:
             img = '<div class="card-img-placeholder">No preview</div>'
 
-        links = ""
-        if e["completed"]:
-            badges = []
-            if e["has_pca"]:
-                badges.append(f'<a class="badge" href="experiment/{exp_id}/pca.html">PCA 3D</a>')
-            if e["has_umap"]:
-                badges.append(f'<a class="badge" href="experiment/{exp_id}/umap.html">UMAP 3D</a>')
-            badges.append(f'<a class="badge" href="experiment/{exp_id}/">Details</a>')
-            links = f'<div class="links">{"".join(badges)}</div>'
+        badges = []
+        if e["has_pca"]:
+            badges.append(f'<a class="badge" href="experiment/{exp_id}/pca.html">PCA 3D</a>')
+        if e["has_umap"]:
+            badges.append(f'<a class="badge" href="experiment/{exp_id}/umap.html">UMAP 3D</a>')
+        badges.append(f'<a class="badge" href="experiment/{exp_id}/">Details</a>')
+        links = f'<div class="links">{"".join(badges)}</div>'
 
         desc_html = f'\n        <div class="desc">{e["description"]}</div>' if e["description"] else ""
-        links_html = f'\n        {links}' if links else ""
+        links_html = f'\n        {links}'
 
-        href = f'experiment/{exp_id}/' if e["completed"] else '#'
         cards.append(
-            f'    <a href="{href}" style="text-decoration:none;color:inherit">\n'
-            f'    <div class="card{cls}">\n'
+            f'    <div class="card">\n'
+            f'      <a class="card-main" href="experiment/{exp_id}/">\n'
             f'      {img}\n'
             f'      <div class="card-body">\n'
             f'        <h3><span class="id">#{exp_id}</span> {e["name"]}</h3>'
-            f'{desc_html}{links_html}\n'
+            f'{desc_html}\n'
+            f'      </div>\n'
+            f'      </a>\n'
+            f'      <div class="card-body card-links">{links_html}\n'
             f'      </div>\n'
             f'    </div>\n'
-            f'    </a>'
         )
 
     return f"""\
@@ -331,10 +322,7 @@ def index_html(experiments: list[dict]) -> str:
 <header class="site-header">
   <h1>Activation Space Projections</h1>
   <p>Interactive 3D latent-space visualizations of convolutional autoencoder embeddings</p>
-  <div class="stats">
-    <span><span class="dot dot-done"></span> {n_done} completed</span>
-    <span><span class="dot dot-pending"></span> {n_total - n_done} pending</span>
-  </div>
+  <div class="stats">{len(experiments)} experiments</div>
 </header>
 <main class="container">
   <div class="grid">
