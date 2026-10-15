@@ -148,12 +148,83 @@ def copy_experiment_assets(meta: dict, dest: Path):
     out = meta["output_dir"]
     for src_name, dst_name in COPY_FILES.items():
         src = out / src_name
-        if src.exists():
+        if not src.exists():
+            continue
+        if src_name.endswith("_3d.html"):
+            (dest / dst_name).write_text(patch_plot(src.read_text()))
+        else:
             shutil.copy2(src, dest / dst_name)
 
     # Also copy preview from Experiments/ source for the thumbnail
     if meta["has_preview"]:
         shutil.copy2(meta["preview_src"], dest / "preview.png")
+
+
+# Injected into every PCA/UMAP page: the hovered sample's image follows the
+# cursor, just above it, instead of sitting in a panel under the plot, and
+# the plot fills its window so the detail page can show two side by side.
+# Works on pages from any version of plotting.py: it hides their own image
+# panel (imgdiv_*) or tooltip (tooltip_*) and Plotly's text label.
+PLOT_PATCH = """
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #fff; }
+  [id^="imgdiv_"], [id^="tooltip_"] { display: none !important; }
+  .plotly-graph-div { width: 100vw !important; height: 100vh !important; }
+  #sample-tip {
+    position: fixed; z-index: 9999; display: none; pointer-events: none;
+    background: #000; border: 1px solid #333; border-radius: 6px; padding: 6px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.35);
+    font: 11px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: #8b949e; text-align: center;
+  }
+  #sample-tip img { display: block; width: 128px; height: 128px; image-rendering: pixelated; border-radius: 3px; }
+  #sample-tip div { margin-top: 4px; }
+</style>
+<div id="sample-tip"></div>
+<script>
+(function () {
+  var tip = document.getElementById('sample-tip');
+  var mx = 0, my = 0;
+  function fit(gd) { Plotly.relayout(gd, { width: window.innerWidth, height: window.innerHeight }); }
+  function place() {
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    var x = Math.min(Math.max(mx - w / 2, 4), window.innerWidth - w - 4);
+    var y = my - h - 14;
+    if (y < 4) y = my + 18;
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  }
+  document.addEventListener('mousemove', function (e) {
+    mx = e.clientX; my = e.clientY;
+    if (tip.style.display === 'block') place();
+  });
+  document.querySelectorAll('.plotly-graph-div').forEach(function (gd) {
+    gd.on('plotly_hover', function (data) {
+      var pt = data.points[0], cd = pt.customdata;
+      if (!cd || !cd[3]) return;
+      tip.innerHTML = '<img src="' + cd[3] + '" alt=""><div>Sample #' + pt.pointNumber + '</div>';
+      tip.style.display = 'block';
+      place();
+    });
+    gd.on('plotly_unhover', function () { tip.style.display = 'none'; });
+    gd.addEventListener('mouseleave', function () { tip.style.display = 'none'; });
+    try {
+      Plotly.restyle(gd, { hovertemplate: null, hoverinfo: 'none' });
+      fit(gd);
+    } catch (e) { window.__patchError = String(e); }
+  });
+  window.addEventListener('resize', function () {
+    document.querySelectorAll('.plotly-graph-div').forEach(fit);
+  });
+})();
+</script>
+"""
+
+
+def patch_plot(html: str) -> str:
+    """Add PLOT_PATCH just before the page's last </body>."""
+    i = html.rfind("</body>")
+    return html + PLOT_PATCH if i < 0 else html[:i] + PLOT_PATCH + html[i:]
 
 
 # ── HTML templates ───────────────────────────────────────────
@@ -257,15 +328,25 @@ a:hover { color: var(--accent-hover); text-decoration: underline; }
 .image-row figcaption {
   font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem;
 }
-.viz-links { display: flex; gap: 1rem; flex-wrap: wrap; }
-.viz-btn {
-  display: inline-flex; align-items: center; gap: 0.4rem;
-  padding: 0.6rem 1.2rem; border-radius: 6px;
-  background: var(--surface); border: 1px solid var(--border);
-  color: var(--text); font-size: 0.9rem; font-weight: 500;
-  transition: border-color 0.15s, background 0.15s;
+.viz-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 1rem;
 }
-.viz-btn:hover { border-color: var(--accent); background: var(--bg); text-decoration: none; }
+.viz { margin: 0; }
+.viz figcaption {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem;
+}
+.viz figcaption a { font-size: 0.8rem; font-weight: 400; }
+.viz iframe {
+  display: block; width: 100%; height: 560px;
+  border: 1px solid var(--border); border-radius: 6px; background: #fff;
+}
+@media (max-width: 520px) {
+  .viz-row { grid-template-columns: 1fr; }
+  .viz iframe { height: 420px; }
+}
 """
 
 
@@ -351,24 +432,16 @@ def experiment_html(e: dict) -> str:
         for fname, cap in images
     )
 
-    # Viz links
-    viz_btns = []
-    if e["has_pca"]:
-        viz_btns.append(
-            '<a class="viz-btn" href="pca.html">'
-            '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">'
-            '<circle cx="3" cy="13" r="1.5"/><circle cx="6" cy="8" r="1.5"/>'
-            '<circle cx="10" cy="10" r="1.5"/><circle cx="13" cy="4" r="1.5"/>'
-            '</svg>PCA 3D Projection</a>'
-        )
-    if e["has_umap"]:
-        viz_btns.append(
-            '<a class="viz-btn" href="umap.html">'
-            '<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">'
-            '<circle cx="4" cy="5" r="1.5"/><circle cx="7" cy="12" r="1.5"/>'
-            '<circle cx="12" cy="7" r="1.5"/><circle cx="9" cy="3" r="1.5"/>'
-            '</svg>UMAP 3D Projection</a>'
-        )
+    # Both projections, side by side
+    views = []
+    for has, fname, label in ((e["has_pca"], "pca.html", "PCA"), (e["has_umap"], "umap.html", "UMAP")):
+        if has:
+            views.append(
+                f'      <figure class="viz">\n'
+                f'        <figcaption>{label} <a href="{fname}">Full screen &#8599;</a></figcaption>\n'
+                f'        <iframe src="{fname}" title="{label} 3D projection" loading="lazy"></iframe>\n'
+                f'      </figure>'
+            )
 
     desc_html = f'<p class="desc">{e["description"]}</p>' if e["description"] else ""
 
@@ -391,8 +464,8 @@ def experiment_html(e: dict) -> str:
 
   <div class="section">
     <h2>Interactive 3D Visualizations</h2>
-    <div class="viz-links">
-      {"".join(viz_btns) if viz_btns else "<p>No visualizations available yet.</p>"}
+    <div class="viz-row">
+{chr(10).join(views) if views else "      <p>No visualizations available yet.</p>"}
     </div>
   </div>
 
